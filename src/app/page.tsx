@@ -13,6 +13,8 @@ import type {
   StoreProductOption,
 } from '../types/store';
 
+export const dynamic = 'force-dynamic';
+
 const galleryImages = getGalleryImages();
 
 const socialLinks = [
