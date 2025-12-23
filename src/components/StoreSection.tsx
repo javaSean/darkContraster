@@ -1,0 +1,382 @@
+'use client';
+
+import Image from 'next/image';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { StoreProduct, StoreVariant, StoreCategory } from '../types/store';
+import { useCart } from '../context/CartContext';
+
+const FILTERS = [
+  { label: 'All', value: 'all' },
+  { label: 'Prints', value: 'prints' },
+  { label: 'Accessories', value: 'accessories' },
+] as const;
+
+type FilterValue = (typeof FILTERS)[number]['value'];
+
+type StoreSectionProps = {
+  products: StoreProduct[];
+};
+
+type ProductKind = 'tee' | 'hoodie' | 'print' | 'book' | 'tote' | 'default';
+
+export function StoreSection({ products }: StoreSectionProps) {
+  const [activeFilter, setActiveFilter] = useState<FilterValue>('all');
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, Record<string, string>>>({});
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
+  const [checkoutErrors, setCheckoutErrors] = useState<Record<string, string>>({});
+  const {
+    addItem,
+    toggleCart,
+    cartCount,
+    cartTotalLabel,
+    cartOpen,
+  } = useCart();
+
+  useEffect(() => {
+    setSelectedVariants((prev) => {
+      const next: Record<string, string> = {};
+      products.forEach((product) => {
+        if (product.variants.length > 1) {
+          next[product.id] = prev[product.id] ?? product.variants[0]!.id;
+        }
+      });
+      return next;
+    });
+    setExpandedDescriptions((prev) => {
+      const next: Record<string, boolean> = {};
+      products.forEach((product) => {
+        next[product.id] = prev[product.id] ?? false;
+      });
+      return next;
+    });
+    setSelectedOptions((prev) => {
+      const next: Record<string, Record<string, string>> = {};
+      products.forEach((product) => {
+        if (product.options.length > 0) {
+          const productSelections = prev[product.id] ?? {};
+          const defaults: Record<string, string> = {};
+          product.options.forEach((option) => {
+            const defaultValue = productSelections[option.name] ?? option.values[0] ?? '';
+            if (defaultValue) {
+              defaults[option.name] = defaultValue;
+            }
+          });
+          next[product.id] = defaults;
+        }
+      });
+      return next;
+    });
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    if (activeFilter === 'all') return products;
+    return products.filter((product) => product.category === activeFilter);
+  }, [activeFilter, products]);
+
+  function addToCart(product: StoreProduct, variant?: StoreVariant) {
+    if (!variant?.price || !variant.currency) {
+      setCheckoutErrors((prev) => ({
+        ...prev,
+        [product.id]: 'Price unavailable for this selection.',
+      }));
+      return;
+    }
+    setCheckoutErrors((prev) => ({ ...prev, [product.id]: '' }));
+    addItem({
+      productId: product.id,
+      variantId: variant.id,
+      name: product.name,
+      variantTitle: variant.title,
+      unitAmount: variant.price,
+      currency: variant.currency ?? 'USD',
+      image: product.image,
+      quantity: 1,
+      kind: mapKindFromCategory(product.category, product.name),
+    });
+  }
+
+  return (
+    <section className="section" id="store">
+      <div className="store-header">
+        <div className="store-heading">
+          <h2>Store</h2>
+          <button
+            type="button"
+            className="cart-toggle store-cart-toggle"
+            onClick={toggleCart}
+            aria-expanded={cartOpen}
+          >
+            Cart
+            <span className="cart-count">{cartCount}</span>
+            {cartTotalLabel && <span className="cart-total">{cartTotalLabel}</span>}
+          </button>
+        </div>
+        <div className="store-filters-wrap" role="group" aria-label="Filter store products">
+          <div className="store-filters">
+            {FILTERS.map((filter) => (
+              <button
+                key={filter.value}
+                type="button"
+                className={`store-filter ${activeFilter === filter.value ? 'active' : ''}`}
+                onClick={() => setActiveFilter(filter.value)}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="store-scroll">
+        <div className="store-grid">
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map((product) => {
+              const optionSelections = selectedOptions[product.id] ?? {};
+              const resolvedVariant = product.options.length
+                ? findVariantFromOptions(product, optionSelections)
+                : findVariantById(product, selectedVariants[product.id]) ?? product.variants[0];
+              const displayPrice = resolvedVariant?.formattedPrice ?? product.price ?? '';
+
+            return (
+              <article key={product.id} className="card store-card">
+                <header className="store-card-header">
+                  <h3>{product.name}</h3>
+                  {displayPrice && <span className="price-tag">{displayPrice}</span>}
+                </header>
+                {product.image && (
+                  <div className="card-media">
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      width={480}
+                      height={480}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 45vw, 30vw"
+                      loading="lazy"
+                      unoptimized
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </div>
+                )}
+              {product.options.length > 0 ? (
+                <div className="variant-selector">
+                  {product.options.map((option) => {
+                    const choices = option.values.map((value) => ({
+                      value,
+                      label: value,
+                    }));
+                    const currentValue =
+                      selectedOptions[product.id]?.[option.name] ?? choices[0]?.value ?? '';
+
+                    return (
+                      <div key={option.name} className="variant-option-block">
+                        <span className="variant-label">{option.name}</span>
+                        {choices.length <= 1 ? (
+                          <p className="variant-single">{choices[0]?.label}</p>
+                        ) : (
+                          <VariantDropdown
+                            ariaLabel={`${product.name} ${option.name}`}
+                            options={choices}
+                            value={currentValue}
+                            onChange={(nextValue) =>
+                              setSelectedOptions((prev) => ({
+                                ...prev,
+                                [product.id]: {
+                                  ...(prev[product.id] ?? {}),
+                                  [option.name]: nextValue,
+                                },
+                              }))
+                            }
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : product.variants.length > 1 ? (
+                <div className="variant-selector">
+                  <span className="variant-label">Variant</span>
+                  <VariantDropdown
+                    ariaLabel={`${product.name} variant`}
+                    options={product.variants.map((variant) => ({
+                      value: variant.id,
+                      label: variant.title,
+                    }))}
+                    value={selectedVariants[product.id] ?? product.variants[0]!.id}
+                    onChange={(nextValue) =>
+                      setSelectedVariants((prev) => ({
+                        ...prev,
+                        [product.id]: nextValue,
+                      }))
+                    }
+                  />
+                </div>
+              ) : null}
+              {product.status && product.status.toLowerCase() !== 'active' && (
+                <span className="product-status warning">
+                  {product.status.replace(/_/g, ' ')}
+                </span>
+              )}
+              <button
+                type="button"
+                className="buy-button"
+                disabled={!resolvedVariant?.price}
+                onClick={() => addToCart(product, resolvedVariant)}
+              >
+                Add to cart
+              </button>
+              {checkoutErrors[product.id] && <p className="checkout-error">{checkoutErrors[product.id]}</p>}
+              {product.description && (
+                <div className="card-description-block">
+                  {expandedDescriptions[product.id] && (
+                    <p className="card-description expanded">{product.description}</p>
+                  )}
+                  <button
+                    type="button"
+                    className="description-toggle"
+                    onClick={() =>
+                      setExpandedDescriptions((prev) => ({
+                        ...prev,
+                        [product.id]: !prev[product.id],
+                      }))
+                    }
+                  >
+                    {expandedDescriptions[product.id] ? 'Show less' : 'Show more'}
+                  </button>
+                </div>
+              )}
+            </article>
+          );
+        })
+          ) : (
+            <p className="gallery-empty">No products in this category yet.</p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+type DropdownOption = {
+  value: string;
+  label: string;
+};
+
+type VariantDropdownProps = {
+  ariaLabel: string;
+  options: DropdownOption[];
+  value: string;
+  onChange: (nextValue: string) => void;
+};
+
+function VariantDropdown({ ariaLabel, options, value, onChange }: VariantDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const currentOption = options.find((option) => option.value === value) ?? options[0];
+
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      if (!wrapperRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, []);
+
+  if (!currentOption) {
+    return null;
+  }
+
+  return (
+    <div className={`variant-dropdown ${open ? 'open' : ''}`} ref={wrapperRef}>
+      <button
+        type="button"
+        className="variant-select"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={ariaLabel}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <span>{currentOption.label}</span>
+        <span className="variant-caret" aria-hidden="true">
+          ⌄
+        </span>
+      </button>
+      {open && (
+        <ul className="variant-menu" role="listbox" aria-label={ariaLabel}>
+          {options.map((option) => (
+            <li key={option.value}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={option.value === currentOption.value}
+                className={`variant-menu-option ${option.value === currentOption.value ? 'active' : ''}`}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                {option.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function findVariantFromOptions(product: StoreProduct, selections: Record<string, string> = {}) {
+  const signature = buildSelectionSignature(selections);
+  if (!product.variants.length) return undefined;
+  if (!signature) return product.variants[0];
+  return product.variants.find((variant) => variant.optionSignature === signature) ?? product.variants[0];
+}
+
+function findVariantById(product: StoreProduct, variantId?: string) {
+  if (!variantId) return product.variants[0];
+  return product.variants.find((variant) => variant.id === variantId) ?? product.variants[0];
+}
+
+function buildSelectionSignature(selections: Record<string, string>) {
+  const pairs = Object.entries(selections)
+    .filter(([name, value]) => Boolean(name) && Boolean(value))
+    .map(([name, value]) => `${normalizeOptionKey(name)}::${normalizeOptionValue(value)}`)
+    .sort();
+
+  return pairs.join('|');
+}
+
+function normalizeOptionKey(input: string) {
+  return input.trim().toLowerCase();
+}
+
+function normalizeOptionValue(input: string) {
+  return input.trim().toLowerCase();
+}
+
+function mapKindFromCategory(category: StoreCategory, name: string): ProductKind {
+  const lower = name.toLowerCase();
+  if (category === 'prints') return 'print';
+  if (category === 'accessories') {
+    if (lower.includes('tote') || lower.includes('bag')) return 'tote';
+    return 'default';
+  }
+  if (lower.includes('tee') || lower.includes('t-shirt') || lower.includes('shirt')) return 'tee';
+  if (lower.includes('hoodie') || lower.includes('pullover') || lower.includes('sweatshirt')) return 'hoodie';
+  if (lower.includes('book')) return 'book';
+  if (lower.includes('print') || lower.includes('poster')) return 'print';
+  return 'default';
+}

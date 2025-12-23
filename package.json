@@ -1,0 +1,31 @@
+{
+  "name": "darkcontraster_dec",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings=0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^20.14.15",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "eslint": "^9.14.0",
+    "eslint-config-next": "^16.0.10",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "@stripe/stripe-js": "^8.6.0",
+    "next": "^16.0.10",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "stripe": "^20.1.0"
+  }
+}
