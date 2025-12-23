@@ -40,7 +40,9 @@ export function MobileSnapManager() {
 
       if (!closestSection) return;
 
-      const targetCenter = closestSection.offsetLeft + closestSection.clientWidth / 2;
+      const targetCenter =
+        (closestSection as HTMLElement).offsetLeft +
+        (closestSection as HTMLElement).clientWidth / 2;
       const targetLeft = targetCenter - container.clientWidth / 2;
       container.scrollTo({ left: targetLeft, behavior: 'smooth' });
     };
