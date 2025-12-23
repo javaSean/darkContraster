@@ -16,8 +16,9 @@ export function MobileSnapManager() {
     let scrollTimeout: number | null = null;
 
     const getSections = (): HTMLElement[] =>
-      (Array.from(container.querySelectorAll('.section')) as HTMLElement[]).filter(
-        (section) => section.offsetWidth > 0,
+      Array.from(container.querySelectorAll('.section')).filter(
+        (section): section is HTMLElement =>
+          section instanceof HTMLElement && section.offsetWidth > 0,
       );
 
     const snapToClosest = () => {
