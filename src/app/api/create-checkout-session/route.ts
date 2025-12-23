@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     }
 
     const shippingAmount = Math.round(shipping.amount);
-    const shippingCountry = String(shipping.country).toUpperCase();
+    const shippingCountry = String(shipping.country).toUpperCase() as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry;
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
