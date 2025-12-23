@@ -15,8 +15,8 @@ export function MobileSnapManager() {
 
     let scrollTimeout: number | null = null;
 
-    const getSections = () =>
-      Array.from(container.querySelectorAll<HTMLElement>('.section')).filter(
+    const getSections = (): HTMLElement[] =>
+      (Array.from(container.querySelectorAll('.section')) as HTMLElement[]).filter(
         (section) => section.offsetWidth > 0,
       );
 
@@ -25,7 +25,7 @@ export function MobileSnapManager() {
       if (!sections.length) return;
 
       const containerCenter = container.scrollLeft + container.clientWidth / 2;
-      let closest: HTMLElement | null = null;
+      let closestSection: HTMLElement | null = null;
       let minDelta = Number.POSITIVE_INFINITY;
 
       sections.forEach((section) => {
@@ -33,13 +33,13 @@ export function MobileSnapManager() {
         const delta = Math.abs(sectionCenter - containerCenter);
         if (delta < minDelta) {
           minDelta = delta;
-          closest = section;
+          closestSection = section;
         }
       });
 
-      if (!closest) return;
+      if (!closestSection) return;
 
-      const targetCenter = closest.offsetLeft + closest.clientWidth / 2;
+      const targetCenter = closestSection.offsetLeft + closestSection.clientWidth / 2;
       const targetLeft = targetCenter - container.clientWidth / 2;
       container.scrollTo({ left: targetLeft, behavior: 'smooth' });
     };
