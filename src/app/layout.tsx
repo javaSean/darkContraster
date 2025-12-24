@@ -19,9 +19,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preload" as="image" href="/images/darkContraster_text.png" />
-      </head>
       <body>
         <CartProvider>
           <StickyBanner />

@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   devIndicators: { buildActivity: false },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -11,6 +12,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'darkcontraster.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.darkcontraster.com',
       },
     ],
   },

@@ -95,6 +95,7 @@ export function StickyBanner() {
             alt="Dark Contraster title lockup"
             loading="eager"
             priority
+            unoptimized
             width={1600}
             height={320}
           />
