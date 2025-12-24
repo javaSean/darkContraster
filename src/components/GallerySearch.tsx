@@ -96,6 +96,7 @@ export function GallerySearch({ images }: GallerySearchProps) {
                     : '(max-width: 768px) 100vw, (max-width: 1200px) 45vw, 30vw'
                 }
                 loading="lazy"
+                unoptimized
                 style={{ objectFit: selectedIndex !== null ? 'contain' : 'cover' }}
               />
             </div>

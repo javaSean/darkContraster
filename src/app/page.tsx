@@ -113,7 +113,7 @@ function getGalleryImages(): GalleryImage[] {
     .sort((a, b) => a.localeCompare(b))
     .map((file) => ({
       title: file.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim(),
-      src: `/galleryImages/${encodeURIComponent(file)}`,
+      src: `/galleryImages/${file}`,
     }));
 }
 
