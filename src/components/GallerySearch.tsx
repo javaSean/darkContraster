@@ -1,6 +1,5 @@
 "use client";
 
-import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
 type GalleryImage = {
@@ -86,18 +85,15 @@ export function GallerySearch({ images }: GallerySearchProps) {
             }}
           >
             <div className="card-media">
-              <Image
+              <img
                 src={piece.src}
                 alt={piece.title}
-                fill
-                sizes={
-                  selectedIndex !== null
-                    ? '(max-width: 1200px) 80vw, 50vw'
-                    : '(max-width: 768px) 100vw, (max-width: 1200px) 45vw, 30vw'
-                }
                 loading="lazy"
-                unoptimized
-                style={{ objectFit: selectedIndex !== null ? 'contain' : 'cover' }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: selectedIndex !== null ? 'contain' : 'cover',
+                }}
               />
             </div>
             <header>
