@@ -4,12 +4,17 @@ import { NextResponse } from 'next/server';
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
 
-const siteUrl =
+const siteUrl = normalizeBaseUrl(
   process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'),
+);
 
-const successUrl = process.env.STRIPE_SUCCESS_URL ?? `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}`;
-const cancelUrl = process.env.STRIPE_CANCEL_URL ?? `${siteUrl}/#store`;
+const successUrl = normalizeStripeUrl(
+  process.env.STRIPE_SUCCESS_URL ?? `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+);
+const cancelUrl = normalizeStripeUrl(
+  process.env.STRIPE_CANCEL_URL ?? `${siteUrl}/#store`,
+);
 
 export async function POST(request: Request) {
   if (!stripe) {
@@ -116,6 +121,22 @@ function resolveImageUrl(src: string): string {
     return src;
   }
   return `${siteUrl}${src.startsWith('/') ? src : `/${src}`}`;
+}
+
+function normalizeBaseUrl(value: string): string {
+  if (!value) return value;
+  if (value.startsWith('http://') && !value.includes('localhost')) {
+    return value.replace('http://', 'https://');
+  }
+  return value.replace(/\/+$/, '');
+}
+
+function normalizeStripeUrl(value: string): string {
+  if (!value) return value;
+  if (value.startsWith('http://') && !value.includes('localhost')) {
+    return value.replace('http://', 'https://');
+  }
+  return value;
 }
 
 type CheckoutItem = {

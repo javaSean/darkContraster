@@ -101,16 +101,6 @@ export function StoreSection({ products }: StoreSectionProps) {
       <div className="store-header">
         <div className="store-heading">
           <h2>Store</h2>
-          <button
-            type="button"
-            className="cart-toggle store-cart-toggle"
-            onClick={toggleCart}
-            aria-expanded={cartOpen}
-          >
-            Cart
-            <span className="cart-count">{cartCount}</span>
-            {cartTotalLabel && <span className="cart-total">{cartTotalLabel}</span>}
-          </button>
         </div>
         <div className="store-filters-wrap" role="group" aria-label="Filter store products">
           <div className="store-filters">

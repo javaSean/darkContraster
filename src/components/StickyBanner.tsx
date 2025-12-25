@@ -60,6 +60,7 @@ export function StickyBanner() {
 
   const cartRef = useRef<HTMLDivElement | null>(null);
   const cartToggleRef = useRef<HTMLButtonElement | null>(null);
+  const mobileCartToggleRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (!cartOpen) return;
@@ -69,6 +70,7 @@ export function StickyBanner() {
       if (!target) return;
       if (cartRef.current?.contains(target)) return;
       if (cartToggleRef.current?.contains(target)) return;
+      if (mobileCartToggleRef.current?.contains(target)) return;
       closeCart();
     }
 
@@ -115,6 +117,32 @@ export function StickyBanner() {
           </button>
         </div>
       </header>
+
+      <button
+        type="button"
+        className={`cart-toggle mobile-cart-toggle ${cartOpen ? 'open' : ''}`}
+        onClick={toggleCart}
+        aria-expanded={cartOpen}
+        aria-label="Open cart"
+        ref={mobileCartToggleRef}
+      >
+        <span className="cart-count">{cartCount}</span>
+        <svg
+          className="cart-icon"
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="9" cy="20" r="1.6" />
+          <circle cx="17" cy="20" r="1.6" />
+          <path d="M3 4h2l2.2 10.5a2 2 0 0 0 2 1.5h7.5a2 2 0 0 0 1.9-1.4L21 8H7.2" />
+        </svg>
+        {cartTotalLabel && <span className="cart-total">{cartTotalLabel}</span>}
+      </button>
 
       {cartOpen && (
         <CartDropdown
