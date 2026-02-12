@@ -1261,6 +1261,7 @@ margin-left:0;
   border-radius: 1rem;
   overflow: hidden;
   background: #050505;
+  cursor: zoom-in;
 }
 
 .card.gallery-card.expanded {
@@ -1284,6 +1285,125 @@ margin-left:0;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.image-carousel {
+  position: absolute;
+  bottom: 0.4rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.35));
+}
+
+.image-carousel button {
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.image-carousel .dots {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.image-carousel .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.25);
+  padding: 0;
+}
+
+.image-carousel .dot.active {
+  background: #fff;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: grid;
+  place-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(2px);
+}
+
+.lightbox-body {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  width: min(92vw, 1200px);
+  justify-items: center;
+}
+
+.lightbox-body.single {
+  grid-template-columns: 1fr;
+}
+
+.lightbox-image {
+  background: #0a0a0a;
+  border-radius: 10px;
+  padding: 0.5rem;
+  display: grid;
+  place-items: center;
+  max-height: 82vh;
+  width: 100%;
+  justify-items: center;
+}
+
+.lightbox .lightbox-nav {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 2rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.lightbox-dots {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.lightbox-dots .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.lightbox-dots .dot.active {
+  background: #fff;
 }
 
 .card h3 {
@@ -1441,8 +1561,9 @@ margin-left:0;
   }
 
   .section#store .store-scroll {
-    height: calc(100% - 4.5rem);
+    height: calc(100% - 7rem);
   }
+  
 
   .section#gallery .gallery-scroll {
     height: calc(100% - 4.5rem);

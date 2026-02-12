@@ -230,27 +230,57 @@ function extractVariantImage(variant: any, product: any): string | undefined {
 
 function extractVariantImages(variant: any, product: any): string[] {
   const pools = [
-    variant.media,
-    variant.images,
-    variant.mockups?.map((m: any) => m?.image?.url ?? m?.url),
-    variant.productPreviewImages,
-    variant.files?.map((f: any) => f?.thumbnailUrl ?? f?.url),
-    product.productVariants
-      ?.filter((entry: any) => entry?.id === variant?.id)
-      ?.flatMap((entry: any) => [
-        entry?.images?.[0]?.url,
-        entry?.mockups?.[0]?.image?.url,
-        entry?.mockups?.[0]?.url,
-        entry?.media?.[0]?.url,
-        entry?.previewImageUrl,
-      ]),
+    normalizeToUrls(variant.media),
+    normalizeToUrls(variant.images),
+    normalizeToUrls(variant.mockups),
+    normalizeToUrls(variant.productPreviewImages),
+    normalizeToUrls(variant.files),
+    normalizeToUrls(
+      product.productVariants
+        ?.filter((entry: any) => entry?.id === variant?.id)
+        ?.flatMap((entry: any) => [
+          entry?.images,
+          entry?.mockups,
+          entry?.media,
+          entry?.previewImageUrl,
+        ]),
+    ),
   ];
 
-  const flat = pools.flatMap((arr) => (Array.isArray(arr) ? arr : []));
-  const urls = flat.filter((url) => typeof url === 'string' && url.length > 0).map((url) => resolveDevImage(url));
+  const flat = pools.flat();
+  const urls = flat
+    .filter((url) => typeof url === 'string' && url.length > 0)
+    .map((url) => resolveDevImage(url));
 
-  // unique preserving order
-  return Array.from(new Set(urls));
+  // keep order; avoid dedup so multiple mockups still show
+  return urls.filter(Boolean) as string[];
+}
+
+function normalizeToUrls(input: any): string[] {
+  if (!input) return [];
+  const arr = Array.isArray(input) ? input : [input];
+  const urls: string[] = [];
+  arr.forEach((item) => {
+    if (!item) return;
+    if (typeof item === 'string') {
+      urls.push(item);
+      return;
+    }
+    if (typeof item === 'object') {
+      const candidates = [
+        item.url,
+        item.src,
+        item.href,
+        item.image?.url,
+        item.thumbnailUrl,
+        item.previewUrl,
+        item.previewImageUrl,
+      ];
+      const found = candidates.find((c) => typeof c === 'string' && c.length > 0);
+      if (found) urls.push(found);
+    }
+  });
+  return urls;
 }
 
 function normalizeTags(tags: unknown): string[] {

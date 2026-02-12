@@ -74,42 +74,51 @@ export async function GET(req: NextRequest) {
           nameFilter ? String(product.name ?? product.title ?? '').toLowerCase().includes(nameFilter) : true,
         )
         .map((product: any) => {
-        const variants = Array.isArray(product.variantDetails)
-          ? product.variantDetails
-          : Array.isArray(product.productVariants)
-            ? product.productVariants
-            : Array.isArray(product.variants)
-              ? product.variants
-              : [];
+          const variants = Array.isArray(product.variantDetails)
+            ? product.variantDetails
+            : Array.isArray(product.productVariants)
+              ? product.productVariants
+              : Array.isArray(product.variants)
+                ? product.variants
+                : [];
 
-        const variantSnapshots = variants.map((variant: any) => {
-          const candidates = [
-            variant.media?.[0]?.url,
-            variant.images?.[0]?.url,
-            variant.mockups?.[0]?.image?.url,
-            variant.mockups?.[0]?.url,
-            variant.externalPreviewUrl,
-            variant.externalThumbnailUrl,
-            variant.previewUrl,
-            variant.previewImageUrl,
-            variant.productPreviewImages?.[0],
-            variant.files?.[0]?.thumbnailUrl,
-            variant.files?.[0]?.url,
-          ].filter(Boolean);
+          const variantSnapshots = variants.map((variant: any) => {
+            const candidates = [
+              variant.media?.[0]?.url,
+              variant.images?.[0]?.url,
+              variant.mockups?.[0]?.image?.url,
+              variant.mockups?.[0]?.url,
+              variant.externalPreviewUrl,
+              variant.externalThumbnailUrl,
+              variant.previewUrl,
+              variant.previewImageUrl,
+              variant.productPreviewImages?.[0],
+              variant.files?.[0]?.thumbnailUrl,
+              variant.files?.[0]?.url,
+            ].filter(Boolean);
+
+            return {
+              id: variant.id ?? variant.variantId ?? variant.productVariantId,
+              title: variant.title ?? variant.name,
+              candidates,
+            };
+          });
 
           return {
-            id: variant.id ?? variant.variantId ?? variant.productVariantId,
-            title: variant.title ?? variant.name,
-            candidates,
+            productId: product.id,
+            name: product.name ?? product.title,
+            productImages: [
+              product.media?.map((m: any) => m?.url),
+              product.images?.map((m: any) => m?.url),
+              product.thumbnailUrl,
+              product.previewImageUrl,
+              product.previewUrl,
+            ]
+              .flat()
+              .filter(Boolean),
+            variants: variantSnapshots,
           };
         });
-
-        return {
-          productId: product.id,
-          name: product.name ?? product.title,
-          variants: variantSnapshots,
-        };
-      });
 
       return NextResponse.json({
         storeId,

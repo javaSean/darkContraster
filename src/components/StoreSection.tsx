@@ -105,6 +105,7 @@ export function StoreSection({ products }: StoreSectionProps) {
   }
 
   return (
+    <>
     <section className="section" id="store">
       <div className="store-header">
         <div className="store-heading">
@@ -243,6 +244,30 @@ export function StoreSection({ products }: StoreSectionProps) {
                                 },
                               }));
                               setImageIndexes((prev) => ({ ...prev, [product.id]: 0 }));
+
+                              // Debug: log which image will display after option change
+                              const nextSelections = {
+                                ...optionSelections,
+                                [option.name]: nextValue,
+                              };
+                              const nextVariant = product.options.length
+                                ? findVariantFromOptions(product, nextSelections)
+                                : findVariantById(product, selectedVariants[product.id]) ?? product.variants[0];
+                              const nextGallery = nextVariant?.images?.length
+                                ? nextVariant.images
+                                : nextVariant?.image
+                                  ? [nextVariant.image]
+                                  : product.image
+                                    ? [product.image]
+                                    : [];
+                              // eslint-disable-next-line no-console
+                              console.log('Variant image', {
+                                product: product.name,
+                                selection: nextSelections,
+                                variant: nextVariant?.title ?? nextVariant?.id,
+                                image: nextGallery[0] ?? null,
+                                galleryLength: nextGallery.length,
+                              });
                             }}
                           />
                         )}
@@ -266,6 +291,23 @@ export function StoreSection({ products }: StoreSectionProps) {
                         [product.id]: nextValue,
                       }));
                       setImageIndexes((prev) => ({ ...prev, [product.id]: 0 }));
+
+                      // Debug: log which image will display after variant change
+                      const nextVariant = findVariantById(product, nextValue);
+                      const nextGallery = nextVariant?.images?.length
+                        ? nextVariant.images
+                        : nextVariant?.image
+                          ? [nextVariant.image]
+                          : product.image
+                            ? [product.image]
+                            : [];
+                      // eslint-disable-next-line no-console
+                      console.log('Variant image', {
+                        product: product.name,
+                        variant: nextVariant?.title ?? nextVariant?.id,
+                        image: nextGallery[0] ?? null,
+                        galleryLength: nextGallery.length,
+                      });
                     }}
                   />
                 </div>
@@ -317,75 +359,82 @@ export function StoreSection({ products }: StoreSectionProps) {
         <button type="button" className="lightbox-close" aria-label="Close" onClick={() => setLightbox(null)}>
           ×
         </button>
-        <div className="lightbox-body">
-          <button
-            type="button"
-            className="lightbox-nav prev"
-            aria-label="Previous image"
-            onClick={() =>
-              setLightbox((prev) =>
-                prev
-                  ? {
-                      ...prev,
-                      index: (prev.index - 1 + prev.images.length) % prev.images.length,
-                    }
-                  : prev,
-              )
-            }
-          >
-            ‹
-          </button>
-          <div className="lightbox-image">
-            <Image
-              src={lightbox.images[lightbox.index]}
-              alt={lightbox.title}
-              width={1200}
-              height={1200}
-              sizes="90vw"
-              unoptimized
-              style={{ objectFit: 'contain' }}
-            />
-          </div>
-          <button
-            type="button"
-            className="lightbox-nav next"
-            aria-label="Next image"
-            onClick={() =>
-              setLightbox((prev) =>
-                prev
-                  ? {
-                      ...prev,
-                      index: (prev.index + 1) % prev.images.length,
-                    }
-                  : prev,
-              )
-            }
-          >
-            ›
-          </button>
-        </div>
-        <div className="lightbox-dots">
-          {lightbox.images.map((_, idx) => (
+        <div className={`lightbox-body ${lightbox.images.length > 1 ? '' : 'single'}`}>
+          {lightbox.images.length > 1 && (
             <button
-              key={idx}
               type="button"
-              className={`dot ${idx === lightbox.index ? 'active' : ''}`}
-              aria-label={`Image ${idx + 1}`}
+              className="lightbox-nav prev"
+              aria-label="Previous image"
               onClick={() =>
                 setLightbox((prev) =>
                   prev
                     ? {
                         ...prev,
-                        index: idx,
+                        index: (prev.index - 1 + prev.images.length) % prev.images.length,
                       }
                     : prev,
                 )
               }
+            >
+              ‹
+            </button>
+          )}
+          <div className="lightbox-image">
+            <Image
+              src={lightbox.images[lightbox.index]}
+              alt={lightbox.title}
+              width={1400}
+              height={1400}
+              sizes="(max-width: 768px) 95vw, 80vw"
+              unoptimized
+              style={{ objectFit: 'contain', maxHeight: '80vh', width: '100%' }}
             />
-          ))}
+          </div>
+          {lightbox.images.length > 1 && (
+            <button
+              type="button"
+              className="lightbox-nav next"
+              aria-label="Next image"
+              onClick={() =>
+                setLightbox((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        index: (prev.index + 1) % prev.images.length,
+                      }
+                    : prev,
+                )
+              }
+            >
+              ›
+            </button>
+          )}
         </div>
+        {lightbox.images.length > 1 && (
+          <div className="lightbox-dots">
+            {lightbox.images.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className={`dot ${idx === lightbox.index ? 'active' : ''}`}
+                aria-label={`Image ${idx + 1}`}
+                onClick={() =>
+                  setLightbox((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          index: idx,
+                        }
+                      : prev,
+                  )
+                }
+              />
+            ))}
+          </div>
+        )}
       </div>
     )}
+    </>
   );
 }
 
