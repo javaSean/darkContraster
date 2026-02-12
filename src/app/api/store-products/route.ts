@@ -19,8 +19,8 @@ export async function GET(req: NextRequest) {
         'Content-Type': 'application/json',
         'X-API-KEY': apiKey,
       },
-      // Always fetch fresh so newly published products appear immediately
-      cache: 'no-store',
+      // Cache at the edge for 5 minutes to speed up page loads while keeping products reasonably fresh
+      next: { revalidate: 300 },
     });
 
     if (!response.ok) {
