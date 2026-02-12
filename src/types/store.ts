@@ -3,6 +3,8 @@ export type StoreCategory = 'prints' | 'accessories' | 'other';
 export type StoreVariant = {
   id: string;
   title: string;
+  image?: string;
+  images?: string[];
   price?: number;
   currency?: string;
   formattedPrice?: string;

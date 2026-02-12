@@ -25,6 +25,13 @@ export function StoreSection({ products }: StoreSectionProps) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, Record<string, string>>>({});
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
   const [checkoutErrors, setCheckoutErrors] = useState<Record<string, string>>({});
+  const [imageIndexes, setImageIndexes] = useState<Record<string, number>>({});
+  const [lightbox, setLightbox] = useState<{
+    productId: string;
+    images: string[];
+    index: number;
+    title: string;
+  } | null>(null);
   const {
     addItem,
     toggleCart,
@@ -67,6 +74,7 @@ export function StoreSection({ products }: StoreSectionProps) {
       });
       return next;
     });
+    setImageIndexes({});
   }, [products]);
 
   const filteredProducts = useMemo(() => {
@@ -127,16 +135,29 @@ export function StoreSection({ products }: StoreSectionProps) {
                 ? findVariantFromOptions(product, optionSelections)
                 : findVariantById(product, selectedVariants[product.id]) ?? product.variants[0];
               const displayPrice = resolvedVariant?.formattedPrice ?? product.price ?? '';
-              const displayImage = resolvedVariant?.image ?? product.image;
+              const gallery = resolvedVariant?.images?.length ? resolvedVariant.images : resolvedVariant?.image ? [resolvedVariant.image] : product.image ? [product.image] : [];
+              const imageIndex = imageIndexes[product.id] ?? 0;
+              const displayImage = gallery[imageIndex] ?? gallery[0] ?? '';
 
-            return (
-              <article key={product.id} className="card store-card">
+              return (
+                <article key={product.id} className="card store-card">
                 <header className="store-card-header">
                   <h3>{product.name}</h3>
                   {displayPrice && <span className="price-tag">{displayPrice}</span>}
                 </header>
                 {displayImage && (
-                  <div className="card-media">
+                  <div
+                    className="card-media"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => gallery.length && setLightbox({ productId: product.id, images: gallery, index: imageIndex, title: product.name })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        gallery.length && setLightbox({ productId: product.id, images: gallery, index: imageIndex, title: product.name });
+                      }
+                    }}
+                  >
                     <Image
                       src={displayImage}
                       alt={product.name}
@@ -147,6 +168,50 @@ export function StoreSection({ products }: StoreSectionProps) {
                       unoptimized
                       style={{ objectFit: 'cover' }}
                     />
+                    {gallery.length > 1 && (
+                      <div className="image-carousel">
+                        <button
+                          type="button"
+                          aria-label="Previous image"
+                          onClick={() =>
+                            setImageIndexes((prev) => ({
+                              ...prev,
+                              [product.id]: (imageIndex - 1 + gallery.length) % gallery.length,
+                            }))
+                          }
+                        >
+                          ‹
+                        </button>
+                        <div className="dots">
+                          {gallery.map((_, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              className={`dot ${idx === imageIndex ? 'active' : ''}`}
+                              aria-label={`Image ${idx + 1}`}
+                              onClick={() =>
+                                setImageIndexes((prev) => ({
+                                  ...prev,
+                                  [product.id]: idx,
+                                }))
+                              }
+                            />
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          aria-label="Next image"
+                          onClick={() =>
+                            setImageIndexes((prev) => ({
+                              ...prev,
+                              [product.id]: (imageIndex + 1) % gallery.length,
+                            }))
+                          }
+                        >
+                          ›
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               {product.options.length > 0 ? (
@@ -169,15 +234,16 @@ export function StoreSection({ products }: StoreSectionProps) {
                             ariaLabel={`${product.name} ${option.name}`}
                             options={choices}
                             value={currentValue}
-                            onChange={(nextValue) =>
+                            onChange={(nextValue) => {
                               setSelectedOptions((prev) => ({
                                 ...prev,
                                 [product.id]: {
                                   ...(prev[product.id] ?? {}),
                                   [option.name]: nextValue,
                                 },
-                              }))
-                            }
+                              }));
+                              setImageIndexes((prev) => ({ ...prev, [product.id]: 0 }));
+                            }}
                           />
                         )}
                       </div>
@@ -194,12 +260,13 @@ export function StoreSection({ products }: StoreSectionProps) {
                       label: variant.title,
                     }))}
                     value={selectedVariants[product.id] ?? product.variants[0]!.id}
-                    onChange={(nextValue) =>
+                    onChange={(nextValue) => {
                       setSelectedVariants((prev) => ({
                         ...prev,
                         [product.id]: nextValue,
-                      }))
-                    }
+                      }));
+                      setImageIndexes((prev) => ({ ...prev, [product.id]: 0 }));
+                    }}
                   />
                 </div>
               ) : null}
@@ -245,6 +312,80 @@ export function StoreSection({ products }: StoreSectionProps) {
         </div>
       </div>
     </section>
+    {lightbox && (
+      <div className="lightbox" role="dialog" aria-modal="true" aria-label={`${lightbox.title} preview`}>
+        <button type="button" className="lightbox-close" aria-label="Close" onClick={() => setLightbox(null)}>
+          ×
+        </button>
+        <div className="lightbox-body">
+          <button
+            type="button"
+            className="lightbox-nav prev"
+            aria-label="Previous image"
+            onClick={() =>
+              setLightbox((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      index: (prev.index - 1 + prev.images.length) % prev.images.length,
+                    }
+                  : prev,
+              )
+            }
+          >
+            ‹
+          </button>
+          <div className="lightbox-image">
+            <Image
+              src={lightbox.images[lightbox.index]}
+              alt={lightbox.title}
+              width={1200}
+              height={1200}
+              sizes="90vw"
+              unoptimized
+              style={{ objectFit: 'contain' }}
+            />
+          </div>
+          <button
+            type="button"
+            className="lightbox-nav next"
+            aria-label="Next image"
+            onClick={() =>
+              setLightbox((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      index: (prev.index + 1) % prev.images.length,
+                    }
+                  : prev,
+              )
+            }
+          >
+            ›
+          </button>
+        </div>
+        <div className="lightbox-dots">
+          {lightbox.images.map((_, idx) => (
+            <button
+              key={idx}
+              type="button"
+              className={`dot ${idx === lightbox.index ? 'active' : ''}`}
+              aria-label={`Image ${idx + 1}`}
+              onClick={() =>
+                setLightbox((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        index: idx,
+                      }
+                    : prev,
+                )
+              }
+            />
+          ))}
+        </div>
+      </div>
+    )}
   );
 }
 

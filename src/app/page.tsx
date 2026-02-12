@@ -228,6 +228,31 @@ function extractVariantImage(variant: any, product: any): string | undefined {
   return resolveDevImage(src) ?? undefined;
 }
 
+function extractVariantImages(variant: any, product: any): string[] {
+  const pools = [
+    variant.media,
+    variant.images,
+    variant.mockups?.map((m: any) => m?.image?.url ?? m?.url),
+    variant.productPreviewImages,
+    variant.files?.map((f: any) => f?.thumbnailUrl ?? f?.url),
+    product.productVariants
+      ?.filter((entry: any) => entry?.id === variant?.id)
+      ?.flatMap((entry: any) => [
+        entry?.images?.[0]?.url,
+        entry?.mockups?.[0]?.image?.url,
+        entry?.mockups?.[0]?.url,
+        entry?.media?.[0]?.url,
+        entry?.previewImageUrl,
+      ]),
+  ];
+
+  const flat = pools.flatMap((arr) => (Array.isArray(arr) ? arr : []));
+  const urls = flat.filter((url) => typeof url === 'string' && url.length > 0).map((url) => resolveDevImage(url));
+
+  // unique preserving order
+  return Array.from(new Set(urls));
+}
+
 function normalizeTags(tags: unknown): string[] {
   if (!Array.isArray(tags)) return [];
   return tags
@@ -274,11 +299,13 @@ function extractVariants(product: any): StoreVariant[] {
             : undefined;
       const currency = variant.currency ?? variant.price?.currency ?? product.price?.currency ?? 'USD';
       const optionMap = extractVariantOptions(variant, title);
+      const images = extractVariantImages(variant, product);
 
       return {
         id: String(id),
         title,
         image: extractVariantImage(variant, product),
+        images: images.length ? images : undefined,
         price: priceValue,
         currency,
         formattedPrice: formatPriceValue(priceValue, currency),
