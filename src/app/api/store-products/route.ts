@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const apiKey = process.env.GELATO_API_KEY;
   const storeId = process.env.GELATO_STORE_ID;
 
@@ -21,11 +21,11 @@ export async function GET() {
       },
       // Always fetch fresh so newly published products appear immediately
       cache: 'no-store',
-      next: { revalidate: 0 },
     });
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Gelato products fetch failed', response.status, errorText);
       return NextResponse.json({ error: errorText }, { status: response.status });
     }
 
@@ -49,11 +49,25 @@ export async function GET() {
       }),
     );
 
-    return NextResponse.json({
+    const payload = {
       ...data,
       products: enrichedProducts,
-    });
+    };
+
+    if (req.nextUrl.searchParams.get('debug') === '1') {
+      return NextResponse.json({
+        storeId,
+        productCount: enrichedProducts.length,
+        upstreamCount: filteredProducts.length,
+        upstreamStatus: 200,
+        sampleNames: enrichedProducts.slice(0, 5).map((p: any) => p?.name ?? p?.title ?? p?.id),
+        data: payload,
+      });
+    }
+
+    return NextResponse.json(payload);
   } catch (error) {
+    console.error('Gelato products fetch exception', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to fetch Gelato products' },
       { status: 500 },
