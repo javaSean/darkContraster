@@ -136,9 +136,9 @@ export function StoreSection({ products }: StoreSectionProps) {
                 ? findVariantFromOptions(product, optionSelections)
                 : findVariantById(product, selectedVariants[product.id]) ?? product.variants[0];
               const displayPrice = resolvedVariant?.formattedPrice ?? product.price ?? '';
-              const gallery =
-                (resolvedVariant?.images && resolvedVariant.images.length > 0 && resolvedVariant.images) ??
-                (product.productImages && product.productImages.length > 0 && product.productImages) ??
+              const gallery: string[] =
+                (resolvedVariant?.images && resolvedVariant.images.length > 0 && resolvedVariant.images) ||
+                (product.productImages && product.productImages.length > 0 && product.productImages) ||
                 (resolvedVariant?.image ? [resolvedVariant.image] : product.image ? [product.image] : []);
               const imageIndex = imageIndexes[product.id] ?? 0;
               const displayImage = gallery[imageIndex] ?? gallery[0] ?? '';
@@ -263,7 +263,6 @@ export function StoreSection({ products }: StoreSectionProps) {
                                   : product.image
                                     ? [product.image]
                                     : [];
-                              // eslint-disable-next-line no-console
                               console.log('Variant image', {
                                 product: product.name,
                                 selection: nextSelections,
@@ -304,7 +303,6 @@ export function StoreSection({ products }: StoreSectionProps) {
                           : product.image
                             ? [product.image]
                             : [];
-                      // eslint-disable-next-line no-console
                       console.log('Variant image', {
                         product: product.name,
                         variant: nextVariant?.title ?? nextVariant?.id,
