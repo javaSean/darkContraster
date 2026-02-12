@@ -19,7 +19,9 @@ export async function GET() {
         'Content-Type': 'application/json',
         'X-API-KEY': apiKey,
       },
-      next: { revalidate: 3600 },
+      // Always fetch fresh so newly published products appear immediately
+      cache: 'no-store',
+      next: { revalidate: 0 },
     });
 
     if (!response.ok) {
