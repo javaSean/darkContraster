@@ -54,7 +54,8 @@ export async function GET(req: NextRequest) {
       products: enrichedProducts,
     };
 
-    if (req.nextUrl.searchParams.get('debug') === '1') {
+    const debug = req.nextUrl.searchParams.get('debug');
+    if (debug === '1') {
       return NextResponse.json({
         storeId,
         productCount: enrichedProducts.length,
@@ -62,6 +63,52 @@ export async function GET(req: NextRequest) {
         upstreamStatus: 200,
         sampleNames: enrichedProducts.slice(0, 5).map((p: any) => p?.name ?? p?.title ?? p?.id),
         data: payload,
+      });
+    }
+
+    // Debug variant image fields to see what Gelato returns per variant
+    if (debug === 'images') {
+      const variantsDebug = enrichedProducts.map((product: any) => {
+        const variants = Array.isArray(product.variantDetails)
+          ? product.variantDetails
+          : Array.isArray(product.productVariants)
+            ? product.productVariants
+            : Array.isArray(product.variants)
+              ? product.variants
+              : [];
+
+        const variantSnapshots = variants.map((variant: any) => {
+          const candidates = [
+            variant.media?.[0]?.url,
+            variant.images?.[0]?.url,
+            variant.mockups?.[0]?.image?.url,
+            variant.mockups?.[0]?.url,
+            variant.externalPreviewUrl,
+            variant.externalThumbnailUrl,
+            variant.previewUrl,
+            variant.previewImageUrl,
+            variant.productPreviewImages?.[0],
+            variant.files?.[0]?.thumbnailUrl,
+            variant.files?.[0]?.url,
+          ].filter(Boolean);
+
+          return {
+            id: variant.id ?? variant.variantId ?? variant.productVariantId,
+            title: variant.title ?? variant.name,
+            candidates,
+          };
+        });
+
+        return {
+          productId: product.id,
+          name: product.name ?? product.title,
+          variants: variantSnapshots,
+        };
+      });
+
+      return NextResponse.json({
+        storeId,
+        products: variantsDebug,
       });
     }
 
