@@ -457,6 +457,10 @@ function resolveDevImage(url?: string | null): string {
   try {
     const parsed = new URL(url);
     const host = parsed.hostname.toLowerCase();
+    // Skip proxy for shop.darkcontraster.com (serve directly)
+    if (host === 'shop.darkcontraster.com') {
+      return url;
+    }
     if (host.includes('darkcontraster.com') || host.includes('wp.com')) {
       return `/api/image-proxy?url=${encodeURIComponent(url)}`;
     }
