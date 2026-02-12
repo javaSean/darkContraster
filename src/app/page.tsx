@@ -118,9 +118,8 @@ function getGalleryImages(): GalleryImage[] {
 }
 
 async function fetchGelatoProducts(): Promise<StoreProduct[]> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+  // Prefer same-origin API when running locally to avoid ORB/CORS issues
+  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
 
   try {
     const response = await fetch(`${baseUrl}/api/store-products`, {
@@ -188,6 +187,8 @@ function extractProductImage(product: any): string {
     product.images?.[0]?.url,
     product.thumbnailUrl,
     product.previewImageUrl,
+    product.variantDetails?.[0]?.externalPreviewUrl,
+    product.variantDetails?.[0]?.externalThumbnailUrl,
     product.productVariants?.[0]?.media?.[0]?.url,
     product.productVariants?.[0]?.images?.[0]?.url,
     product.productVariants?.[0]?.mockups?.[0]?.image?.url,
@@ -195,7 +196,31 @@ function extractProductImage(product: any): string {
   ];
 
   const src = candidates.find((url) => typeof url === 'string' && url.length > 0);
-  return src ?? '';
+  return resolveDevImage(src);
+}
+
+function extractVariantImage(variant: any, product: any): string | undefined {
+  const candidates = [
+    variant.media?.[0]?.url,
+    variant.images?.[0]?.url,
+    variant.mockups?.[0]?.image?.url,
+    variant.mockups?.[0]?.url,
+    variant.externalPreviewUrl,
+    variant.externalThumbnailUrl,
+    variant.previewUrl,
+    variant.previewImageUrl,
+    variant.productPreviewImages?.[0],
+    variant.files?.[0]?.thumbnailUrl,
+    variant.files?.[0]?.url,
+    product.productVariants?.find((entry: any) => entry?.id === variant?.id)?.mockups?.[0]?.url,
+    product.productVariants?.find((entry: any) => entry?.id === variant?.id)?.media?.[0]?.url,
+    product.productVariants?.find((entry: any) => entry?.id === variant?.id)?.previewImageUrl,
+    product.productVariants?.find((entry: any) => entry?.id === variant?.id)?.images?.[0]?.url,
+    product.productVariants?.find((entry: any) => entry?.id === variant?.id)?.mockups?.[0]?.image?.url,
+  ];
+
+  const src = candidates.find((url) => typeof url === 'string' && url.length > 0);
+  return resolveDevImage(src) ?? undefined;
 }
 
 function normalizeTags(tags: unknown): string[] {
@@ -248,6 +273,7 @@ function extractVariants(product: any): StoreVariant[] {
       return {
         id: String(id),
         title,
+        image: extractVariantImage(variant, product),
         price: priceValue,
         currency,
         formattedPrice: formatPriceValue(priceValue, currency),
@@ -367,9 +393,19 @@ function extractVariantOptions(variant: any, fallbackTitle: string): Record<stri
   });
 
   if (Object.keys(optionMap).length === 0 && typeof fallbackTitle === 'string' && fallbackTitle.includes(':')) {
-    const [name, value] = fallbackTitle.split(':');
-    if (name && value) {
-      optionMap[name.trim()] = value.trim();
+    const segments = fallbackTitle.split(',');
+    segments.forEach((segment) => {
+      const [name, value] = segment.split(':');
+      if (name && value) {
+        optionMap[name.trim()] = value.trim();
+      }
+    });
+    // If still empty, fall back to first colon split
+    if (Object.keys(optionMap).length === 0) {
+      const [name, value] = fallbackTitle.split(':');
+      if (name && value) {
+        optionMap[name.trim()] = value.trim();
+      }
     }
   }
 
@@ -401,4 +437,44 @@ function formatPriceValue(amount?: number, currency?: string): string {
     maximumFractionDigits: 2,
   });
   return formatter.format(amount);
+}
+
+function resolveDevImage(url?: string | null): string {
+  if (!url) return '';
+  // In development, prefer cached local copy if manifest maps this URL
+  if (process.env.NODE_ENV === 'development') {
+    const manifest = getDevImageManifest();
+    if (manifest && manifest[url]) {
+      return manifest[url];
+    }
+  }
+  // Otherwise fall back to proxy for hosts that hotlink-protect
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    if (host.includes('darkcontraster.com') || host.includes('wp.com')) {
+      return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+    }
+    return url;
+  } catch {
+    return '';
+  }
+}
+
+let cachedManifest: Record<string, string> | null | undefined;
+function getDevImageManifest(): Record<string, string> | null {
+  if (cachedManifest !== undefined) return cachedManifest;
+  const manifestPath = path.join(process.cwd(), 'public', 'dev-images', 'manifest.json');
+  if (!fs.existsSync(manifestPath)) {
+    cachedManifest = null;
+    return null;
+  }
+  try {
+    const raw = fs.readFileSync(manifestPath, 'utf8');
+    cachedManifest = JSON.parse(raw) as Record<string, string>;
+    return cachedManifest;
+  } catch {
+    cachedManifest = null;
+    return null;
+  }
 }
