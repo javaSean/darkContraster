@@ -168,6 +168,7 @@ async function fetchGelatoProducts(): Promise<StoreProduct[]> {
                 ? product.availability
                 : '',
           image: extractProductImage(product),
+          productImages: extractProductImages(product),
           tags: normalizeTags(product.tags),
           category: determineCategory(product),
           variants,
@@ -202,6 +203,21 @@ function extractProductImage(product: any): string {
 
   const src = candidates.find((url) => typeof url === 'string' && url.length > 0);
   return resolveDevImage(src);
+}
+
+function extractProductImages(product: any): string[] {
+  const pools = [
+    normalizeToUrls(product.media),
+    normalizeToUrls(product.images),
+    normalizeToUrls(product.mockups),
+    normalizeToUrls(product.productImages),
+    normalizeToUrls(product.productPreviewImages),
+    normalizeToUrls(product.files),
+    [product.thumbnailUrl, product.previewImageUrl, product.previewUrl],
+  ];
+  const flat = pools.flat();
+  const urls = flat.filter((url) => typeof url === 'string' && url.length > 0).map((url) => resolveDevImage(url));
+  return urls;
 }
 
 function extractVariantImage(variant: any, product: any): string | undefined {

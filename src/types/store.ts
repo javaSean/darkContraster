@@ -24,6 +24,7 @@ export type StoreProduct = {
   price?: string;
   status?: string;
   image?: string;
+  productImages?: string[];
   tags?: string[];
   category: StoreCategory;
   variants: StoreVariant[];

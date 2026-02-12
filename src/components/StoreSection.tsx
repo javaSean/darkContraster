@@ -136,7 +136,10 @@ export function StoreSection({ products }: StoreSectionProps) {
                 ? findVariantFromOptions(product, optionSelections)
                 : findVariantById(product, selectedVariants[product.id]) ?? product.variants[0];
               const displayPrice = resolvedVariant?.formattedPrice ?? product.price ?? '';
-              const gallery = resolvedVariant?.images?.length ? resolvedVariant.images : resolvedVariant?.image ? [resolvedVariant.image] : product.image ? [product.image] : [];
+              const gallery =
+                (resolvedVariant?.images && resolvedVariant.images.length > 0 && resolvedVariant.images) ??
+                (product.productImages && product.productImages.length > 0 && product.productImages) ??
+                (resolvedVariant?.image ? [resolvedVariant.image] : product.image ? [product.image] : []);
               const imageIndex = imageIndexes[product.id] ?? 0;
               const displayImage = gallery[imageIndex] ?? gallery[0] ?? '';
 
