@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import fs from 'node:fs';
 import path from 'node:path';
+import { headers } from 'next/headers';
 import { EnterButton } from '../components/EnterButton';
 import { GallerySearch } from '../components/GallerySearch';
 import { MobileTabs } from '../components/MobileTabs';
@@ -118,8 +119,12 @@ function getGalleryImages(): GalleryImage[] {
 }
 
 async function fetchGelatoProducts(): Promise<StoreProduct[]> {
-  // Prefer same-origin API when running locally to avoid ORB/CORS issues
-  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+  // Prefer the current host so we always hit the right deployment/domain
+  const host = headers().get('host');
+  const protocol = host?.startsWith('localhost') ? 'http' : 'https';
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (host ? `${protocol}://${host}` : process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
   try {
     const response = await fetch(`${baseUrl}/api/store-products`, {
