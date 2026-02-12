@@ -68,7 +68,12 @@ export async function GET(req: NextRequest) {
 
     // Debug variant image fields to see what Gelato returns per variant
     if (debug === 'images') {
-      const variantsDebug = enrichedProducts.map((product: any) => {
+      const nameFilter = req.nextUrl.searchParams.get('name')?.toLowerCase() ?? '';
+      const variantsDebug = enrichedProducts
+        .filter((product: any) =>
+          nameFilter ? String(product.name ?? product.title ?? '').toLowerCase().includes(nameFilter) : true,
+        )
+        .map((product: any) => {
         const variants = Array.isArray(product.variantDetails)
           ? product.variantDetails
           : Array.isArray(product.productVariants)
