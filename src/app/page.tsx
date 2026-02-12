@@ -532,12 +532,12 @@ function resolveDevImage(url?: string | null): string {
     const host = parsed.hostname.toLowerCase();
     // Skip proxy for shop.darkcontraster.com (serve directly)
     if (host === 'shop.darkcontraster.com') {
-      return url;
+      return appendImageVersion(url);
     }
     if (host.includes('darkcontraster.com') || host.includes('wp.com')) {
-      return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+      return `/api/image-proxy?url=${encodeURIComponent(appendImageVersion(url))}`;
     }
-    return url;
+    return appendImageVersion(url);
   } catch {
     return '';
   }
@@ -559,4 +559,15 @@ function getDevImageManifest(): Record<string, string> | null {
     cachedManifest = null;
     return null;
   }
+}
+
+function appendImageVersion(url: string): string {
+  const version =
+    process.env.NEXT_PUBLIC_IMAGE_VERSION ??
+    process.env.VERCEL_GIT_COMMIT_SHA ??
+    process.env.VERCEL_BUILD_ID ??
+    '';
+  if (!version) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}v=${version}`;
 }
