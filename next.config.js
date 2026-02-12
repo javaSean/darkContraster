@@ -7,15 +7,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'gelato-api-live.s3.eu-west-1.amazonaws.com',
+        hostname: '**',
       },
       {
         protocol: 'https',
-        hostname: 'darkcontraster.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'www.darkcontraster.com',
+        hostname: 'shop.darkcontraster.com',
       },
     ],
   },

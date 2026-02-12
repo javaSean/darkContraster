@@ -90,7 +90,7 @@ export function StoreSection({ products }: StoreSectionProps) {
       variantTitle: variant.title,
       unitAmount: variant.price,
       currency: variant.currency ?? 'USD',
-      image: product.image,
+      image: variant.image ?? product.image,
       quantity: 1,
       kind: mapKindFromCategory(product.category, product.name),
     });
@@ -127,6 +127,7 @@ export function StoreSection({ products }: StoreSectionProps) {
                 ? findVariantFromOptions(product, optionSelections)
                 : findVariantById(product, selectedVariants[product.id]) ?? product.variants[0];
               const displayPrice = resolvedVariant?.formattedPrice ?? product.price ?? '';
+              const displayImage = resolvedVariant?.image ?? product.image;
 
             return (
               <article key={product.id} className="card store-card">
@@ -134,10 +135,10 @@ export function StoreSection({ products }: StoreSectionProps) {
                   <h3>{product.name}</h3>
                   {displayPrice && <span className="price-tag">{displayPrice}</span>}
                 </header>
-                {product.image && (
+                {displayImage && (
                   <div className="card-media">
                     <Image
-                      src={product.image}
+                      src={displayImage}
                       alt={product.name}
                       width={480}
                       height={480}
@@ -332,7 +333,18 @@ function findVariantFromOptions(product: StoreProduct, selections: Record<string
   const signature = buildSelectionSignature(selections);
   if (!product.variants.length) return undefined;
   if (!signature) return product.variants[0];
-  return product.variants.find((variant) => variant.optionSignature === signature) ?? product.variants[0];
+  const exact = product.variants.find((variant) => variant.optionSignature === signature);
+  if (exact) return exact;
+
+  // Fallback: try loose matching by option values when signature formats differ
+  const selectionValues = Object.values(selections)
+    .filter(Boolean)
+    .map((v) => v.trim().toLowerCase());
+  const loose = product.variants.find((variant) => {
+    const optionVals = Object.values(variant.options ?? {}).map((v) => v.trim().toLowerCase());
+    return selectionValues.every((val) => optionVals.includes(val) || (variant.title?.toLowerCase() ?? '').includes(val));
+  });
+  return loose ?? product.variants[0];
 }
 
 function findVariantById(product: StoreProduct, variantId?: string) {
