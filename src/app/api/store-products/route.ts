@@ -63,20 +63,13 @@ export async function GET(req: NextRequest) {
     const enrichedProducts = await Promise.all(
       filteredProducts.map(async (product: any) => {
         const variantDetails = await fetchProductVariants(storeId, product.id, apiKey);
-        // drop explicitly ignored variants
+        // drop variants only when explicitly ignored/draft/inactive
         const cleanedVariants = (variantDetails ?? []).filter((v: any) => {
           const vStatus = String(v?.status ?? '').toLowerCase();
           const vConn = String(v?.connectionStatus ?? '').toLowerCase();
           return vConn !== 'ignored' && vStatus !== 'ignored' && vStatus !== 'draft' && vStatus !== 'inactive';
         });
-        return { ...product, variantDetails: cleanedVariants };
-      }),
-    ).then((products) =>
-      products.filter((p: any) => {
-        // remove products where all variants were filtered out
-        const variants = Array.isArray(p.variantDetails) ? p.variantDetails : [];
-        if (variants.length === 0) return false;
-        return true;
+        return { ...product, variantDetails: cleanedVariants.length ? cleanedVariants : variantDetails ?? [] };
       }),
     );
 
@@ -186,7 +179,40 @@ async function fetchProductVariants(storeId: string, productId: string, apiKey: 
     }
 
     const data = await response.json();
-    return Array.isArray(data?.productVariants) ? data.productVariants : [];
+    const variants = Array.isArray(data?.productVariants) ? data.productVariants : [];
+
+    // Fetch mockups for each variant to surface additional preview images
+    const enriched = await Promise.all(
+      variants.map(async (variant: any) => {
+        const mockups = await fetchVariantMockups(storeId, productId, variant.id, apiKey);
+        return { ...variant, mockups };
+      }),
+    );
+
+    return enriched;
+  } catch {
+    return [];
+  }
+}
+
+async function fetchVariantMockups(storeId: string, productId: string, variantId: string, apiKey: string) {
+  if (!variantId) return [];
+  const mockupUrl = `https://ecommerce.gelatoapis.com/v1/stores/${storeId}/products/${productId}/variants/${variantId}/mockups`;
+  try {
+    const response = await fetch(mockupUrl, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      cache: 'no-store',
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    // Gelato returns { mockups: [ { image: { url }, previewUrl, thumbnailUrl, ... } ] }
+    if (Array.isArray(data?.mockups)) {
+      return data.mockups;
+    }
+    return [];
   } catch {
     return [];
   }
