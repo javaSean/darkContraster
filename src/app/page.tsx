@@ -530,13 +530,16 @@ function resolveDevImage(url?: string | null): string {
   try {
     const parsed = new URL(url);
     const host = parsed.hostname.toLowerCase();
+    const isGelatoS3 = host.includes('gelato-api-live.s3');
     // Skip proxy for shop.darkcontraster.com (serve directly)
     if (host === 'shop.darkcontraster.com') {
       return appendImageVersion(url);
     }
-    // Do not append cache-buster to signed URLs (X-Amz-*), or Gelato S3 host
+    // Do not append cache-buster to signed URLs (X-Amz-*) or Gelato S3 host
     const hasSignedParams = Array.from(parsed.searchParams.keys()).some((k) => k.toLowerCase().startsWith('x-amz-'));
-    const isGelatoS3 = host.includes('gelato-api-live.s3');
+    if (isGelatoS3) {
+      return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+    }
     if (host.includes('darkcontraster.com') || host.includes('wp.com')) {
       const targetUrl = hasSignedParams || isGelatoS3 ? url : appendImageVersion(url);
       return `/api/image-proxy?url=${encodeURIComponent(targetUrl)}`;
