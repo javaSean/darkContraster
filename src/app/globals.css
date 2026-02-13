@@ -1388,8 +1388,9 @@ margin-left:0;
 .lightbox-close {
   position: absolute;
   top: 0.5rem;
-  left: 0.5rem;
-  background: rgba(0, 0, 0, 0.7);
+  right: 0.5rem;
+  left: auto;
+  background: rgba(0, 0, 0, 0.8);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 50%;
@@ -1397,7 +1398,9 @@ margin-left:0;
   height: 44px;
   font-size: 1.4rem;
   line-height: 1;
-  z-index: 1;
+  z-index: 3;
+  display: grid;
+  place-items: center;
 }
 
 .lightbox-dots {
