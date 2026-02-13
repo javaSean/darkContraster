@@ -249,7 +249,12 @@ function extractVariantImages(variant: any, product: any): string[] {
     normalizeToUrls(variant.media),
     normalizeToUrls(variant.images),
     normalizeToUrls(variant.mockups),
+    normalizeToUrls(variant.mockupPreviews),
+    normalizeToUrls(variant.productMockups),
     normalizeToUrls(variant.productPreviewImages),
+    normalizeToUrls(variant.previewUrls),
+    normalizeToUrls(variant.previewUrl),
+    normalizeToUrls(variant.previewImages),
     normalizeToUrls(variant.files),
     normalizeToUrls(
       product.productVariants
@@ -257,8 +262,13 @@ function extractVariantImages(variant: any, product: any): string[] {
         ?.flatMap((entry: any) => [
           entry?.images,
           entry?.mockups,
+          entry?.mockupPreviews,
+          entry?.productMockups,
           entry?.media,
+          entry?.previewUrls,
+          entry?.previewUrl,
           entry?.previewImageUrl,
+          entry?.previewImages,
         ]),
     ),
   ];

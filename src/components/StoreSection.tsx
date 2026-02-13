@@ -140,9 +140,8 @@ export function StoreSection({ products }: StoreSectionProps) {
                 (resolvedVariant?.images && resolvedVariant.images.length > 0 && resolvedVariant.images) ||
                 (product.productImages && product.productImages.length > 0 && product.productImages) ||
                 (resolvedVariant?.image ? [resolvedVariant.image] : product.image ? [product.image] : []);
-              const gallery: string[] = baseGallery.map((src) =>
-                src ? appendVariantCacheBuster(src, resolvedVariant?.id) : src,
-              );
+              const gallerySource = baseGallery.length > 0 ? baseGallery : product.productImages ?? [];
+              const gallery: string[] = gallerySource;
               const galleryKey = `${product.id}-${resolvedVariant?.id ?? 'fallback'}`;
               const imageIndex = imageIndexes[galleryKey] ?? 0;
               const displayImage = gallery[imageIndex] ?? gallery[0] ?? '';
@@ -595,8 +594,6 @@ function mapKindFromCategory(category: StoreCategory, name: string): ProductKind
   return 'default';
 }
 
-function appendVariantCacheBuster(src: string, variantId?: string) {
-  if (!src) return src;
-  const separator = src.includes('?') ? '&' : '?';
-  return `${src}${separator}v=${variantId ?? 'variant'}`;
+function appendVariantCacheBuster(src: string) {
+  return src;
 }

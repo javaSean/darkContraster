@@ -1335,6 +1335,8 @@ margin-left:0;
   place-items: center;
   z-index: 2000;
   backdrop-filter: blur(2px);
+  padding-top: calc(var(--banner-height) + 12px);
+  padding-bottom: 80px; /* avoid bottom tab overlap on mobile */
 }
 
 .lightbox-body {
@@ -1344,6 +1346,11 @@ margin-left:0;
   gap: 1rem;
   width: min(92vw, 1200px);
   justify-items: center;
+}
+
+.lightbox.single {
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .lightbox-body.single {
