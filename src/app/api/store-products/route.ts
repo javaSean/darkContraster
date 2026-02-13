@@ -55,19 +55,19 @@ export async function GET(req: NextRequest) {
         status === 'ignored';
       const isIgnoredTag = tags.includes('ignore') || tags.includes('hidden');
       const isIgnoredConnection = connectionStatus === 'ignored';
-      const isConnected = connectionStatus === 'connected';
 
-      return isConnected && !isBadStatus && !isIgnoredTag && !ignoredFlag && !isIgnoredConnection;
+      // Drop only when explicitly ignored; otherwise allow (connected/empty/other)
+      return !isBadStatus && !isIgnoredTag && !ignoredFlag && !isIgnoredConnection;
     });
 
     const enrichedProducts = await Promise.all(
       filteredProducts.map(async (product: any) => {
         const variantDetails = await fetchProductVariants(storeId, product.id, apiKey);
-        // drop ignored variants
+        // drop explicitly ignored variants
         const cleanedVariants = (variantDetails ?? []).filter((v: any) => {
           const vStatus = String(v?.status ?? '').toLowerCase();
           const vConn = String(v?.connectionStatus ?? '').toLowerCase();
-          return vConn === 'connected' && vStatus !== 'ignored' && vStatus !== 'draft' && vStatus !== 'inactive';
+          return vConn !== 'ignored' && vStatus !== 'ignored' && vStatus !== 'draft' && vStatus !== 'inactive';
         });
         return { ...product, variantDetails: cleanedVariants };
       }),
