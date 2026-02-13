@@ -136,10 +136,13 @@ export function StoreSection({ products }: StoreSectionProps) {
                 ? findVariantFromOptions(product, optionSelections)
                 : findVariantById(product, selectedVariants[product.id]) ?? product.variants[0];
               const displayPrice = resolvedVariant?.formattedPrice ?? product.price ?? '';
-              const gallery: string[] =
+              const baseGallery: string[] =
                 (resolvedVariant?.images && resolvedVariant.images.length > 0 && resolvedVariant.images) ||
                 (product.productImages && product.productImages.length > 0 && product.productImages) ||
                 (resolvedVariant?.image ? [resolvedVariant.image] : product.image ? [product.image] : []);
+              const gallery: string[] = baseGallery.map((src) =>
+                src ? appendVariantCacheBuster(src, resolvedVariant?.id) : src,
+              );
               const galleryKey = `${product.id}-${resolvedVariant?.id ?? 'fallback'}`;
               const imageIndex = imageIndexes[galleryKey] ?? 0;
               const displayImage = gallery[imageIndex] ?? gallery[0] ?? '';
@@ -590,4 +593,10 @@ function mapKindFromCategory(category: StoreCategory, name: string): ProductKind
   if (lower.includes('book')) return 'book';
   if (lower.includes('print') || lower.includes('poster')) return 'print';
   return 'default';
+}
+
+function appendVariantCacheBuster(src: string, variantId?: string) {
+  if (!src) return src;
+  const separator = src.includes('?') ? '&' : '?';
+  return `${src}${separator}v=${variantId ?? 'variant'}`;
 }
