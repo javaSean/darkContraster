@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
 
     const filteredProducts = rawProducts.filter((product: any) => {
       const status = String(product.status ?? '').toLowerCase();
+      const connectionStatus = String(product.connectionStatus ?? '').toLowerCase();
       const tags = Array.isArray(product.tags)
         ? product.tags.map((t: any) => String(t).toLowerCase())
         : [];
@@ -53,14 +54,29 @@ export async function GET(req: NextRequest) {
         status === 'unpublished' ||
         status === 'ignored';
       const isIgnoredTag = tags.includes('ignore') || tags.includes('hidden');
+      const isIgnoredConnection = connectionStatus === 'ignored';
+      const isConnected = connectionStatus === 'connected';
 
-      return !isBadStatus && !isIgnoredTag && !ignoredFlag;
+      return isConnected && !isBadStatus && !isIgnoredTag && !ignoredFlag && !isIgnoredConnection;
     });
 
     const enrichedProducts = await Promise.all(
       filteredProducts.map(async (product: any) => {
         const variantDetails = await fetchProductVariants(storeId, product.id, apiKey);
-        return { ...product, variantDetails };
+        // drop ignored variants
+        const cleanedVariants = (variantDetails ?? []).filter((v: any) => {
+          const vStatus = String(v?.status ?? '').toLowerCase();
+          const vConn = String(v?.connectionStatus ?? '').toLowerCase();
+          return vConn === 'connected' && vStatus !== 'ignored' && vStatus !== 'draft' && vStatus !== 'inactive';
+        });
+        return { ...product, variantDetails: cleanedVariants };
+      }),
+    ).then((products) =>
+      products.filter((p: any) => {
+        // remove products where all variants were filtered out
+        const variants = Array.isArray(p.variantDetails) ? p.variantDetails : [];
+        if (variants.length === 0) return false;
+        return true;
       }),
     );
 
