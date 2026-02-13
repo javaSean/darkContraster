@@ -38,9 +38,24 @@ export async function GET(req: NextRequest) {
           ? data
           : [];
 
-    const filteredProducts = rawProducts.filter(
-      (product: any) => (product.status ?? '').toLowerCase() !== 'publishing_error',
-    );
+    const filteredProducts = rawProducts.filter((product: any) => {
+      const status = String(product.status ?? '').toLowerCase();
+      const tags = Array.isArray(product.tags)
+        ? product.tags.map((t: any) => String(t).toLowerCase())
+        : [];
+      const ignoredFlag = Boolean(product.ignore ?? product.ignored ?? product.hidden);
+
+      // Exclude publishing errors, drafts, inactive/unpublished, explicit ignored/hidden status or flag, or ignore/hidden tag
+      const isBadStatus =
+        status === 'publishing_error' ||
+        status === 'draft' ||
+        status === 'inactive' ||
+        status === 'unpublished' ||
+        status === 'ignored';
+      const isIgnoredTag = tags.includes('ignore') || tags.includes('hidden');
+
+      return !isBadStatus && !isIgnoredTag && !ignoredFlag;
+    });
 
     const enrichedProducts = await Promise.all(
       filteredProducts.map(async (product: any) => {
