@@ -140,7 +140,8 @@ export function StoreSection({ products }: StoreSectionProps) {
                 (resolvedVariant?.images && resolvedVariant.images.length > 0 && resolvedVariant.images) ||
                 (product.productImages && product.productImages.length > 0 && product.productImages) ||
                 (resolvedVariant?.image ? [resolvedVariant.image] : product.image ? [product.image] : []);
-              const imageIndex = imageIndexes[product.id] ?? 0;
+              const galleryKey = `${product.id}-${resolvedVariant?.id ?? 'fallback'}`;
+              const imageIndex = imageIndexes[galleryKey] ?? 0;
               const displayImage = gallery[imageIndex] ?? gallery[0] ?? '';
 
               return (
@@ -154,13 +155,18 @@ export function StoreSection({ products }: StoreSectionProps) {
                     className="card-media"
                     role="button"
                     tabIndex={0}
-                    onClick={() => gallery.length && setLightbox({ productId: product.id, images: gallery, index: imageIndex, title: product.name })}
+                    onClick={() =>
+                      gallery.length &&
+                      setLightbox({ productId: product.id, images: gallery, index: imageIndex, title: product.name })
+                    }
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        gallery.length && setLightbox({ productId: product.id, images: gallery, index: imageIndex, title: product.name });
+                        gallery.length &&
+                          setLightbox({ productId: product.id, images: gallery, index: imageIndex, title: product.name });
                       }
                     }}
+                    key={galleryKey}
                   >
                     <Image
                       src={displayImage}
@@ -171,6 +177,7 @@ export function StoreSection({ products }: StoreSectionProps) {
                       loading="lazy"
                       unoptimized
                       style={{ objectFit: 'cover' }}
+                      key={displayImage}
                     />
                     {gallery.length > 1 && (
                       <div className="image-carousel">
@@ -180,7 +187,7 @@ export function StoreSection({ products }: StoreSectionProps) {
                           onClick={() =>
                             setImageIndexes((prev) => ({
                               ...prev,
-                              [product.id]: (imageIndex - 1 + gallery.length) % gallery.length,
+                              [galleryKey]: (imageIndex - 1 + gallery.length) % gallery.length,
                             }))
                           }
                         >
@@ -196,7 +203,7 @@ export function StoreSection({ products }: StoreSectionProps) {
                               onClick={() =>
                                 setImageIndexes((prev) => ({
                                   ...prev,
-                                  [product.id]: idx,
+                                  [galleryKey]: idx,
                                 }))
                               }
                             />
@@ -208,7 +215,7 @@ export function StoreSection({ products }: StoreSectionProps) {
                           onClick={() =>
                             setImageIndexes((prev) => ({
                               ...prev,
-                              [product.id]: (imageIndex + 1) % gallery.length,
+                              [galleryKey]: (imageIndex + 1) % gallery.length,
                             }))
                           }
                         >
@@ -246,16 +253,18 @@ export function StoreSection({ products }: StoreSectionProps) {
                                   [option.name]: nextValue,
                                 },
                               }));
-                              setImageIndexes((prev) => ({ ...prev, [product.id]: 0 }));
-
-                              // Debug: log which image will display after option change
                               const nextSelections = {
                                 ...optionSelections,
                                 [option.name]: nextValue,
                               };
-                              const nextVariant = product.options.length
-                                ? findVariantFromOptions(product, nextSelections)
-                                : findVariantById(product, selectedVariants[product.id]) ?? product.variants[0];
+                              const nextVariant =
+                                product.options.length > 0
+                                  ? findVariantFromOptions(product, nextSelections)
+                                  : findVariantById(product, selectedVariants[product.id]) ?? product.variants[0];
+                              const nextKey = `${product.id}-${nextVariant?.id ?? 'fallback'}`;
+                              setImageIndexes((prev) => ({ ...prev, [nextKey]: 0 }));
+
+                              // Debug: log which image will display after option change
                               const nextGallery = nextVariant?.images?.length
                                 ? nextVariant.images
                                 : nextVariant?.image
@@ -292,7 +301,7 @@ export function StoreSection({ products }: StoreSectionProps) {
                         ...prev,
                         [product.id]: nextValue,
                       }));
-                      setImageIndexes((prev) => ({ ...prev, [product.id]: 0 }));
+                      setImageIndexes((prev) => ({ ...prev, [`${product.id}-${nextValue}`]: 0 }));
 
                       // Debug: log which image will display after variant change
                       const nextVariant = findVariantById(product, nextValue);
@@ -356,11 +365,20 @@ export function StoreSection({ products }: StoreSectionProps) {
       </div>
     </section>
     {lightbox && (
-      <div className="lightbox" role="dialog" aria-modal="true" aria-label={`${lightbox.title} preview`}>
+      <div
+        className="lightbox"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${lightbox.title} preview`}
+        onClick={() => setLightbox(null)}
+      >
         <button type="button" className="lightbox-close" aria-label="Close" onClick={() => setLightbox(null)}>
           ×
         </button>
-        <div className={`lightbox-body ${lightbox.images.length > 1 ? '' : 'single'}`}>
+        <div
+          className={`lightbox-body ${lightbox.images.length > 1 ? '' : 'single'}`}
+          onClick={(e) => e.stopPropagation()}
+        >
           {lightbox.images.length > 1 && (
             <button
               type="button"
