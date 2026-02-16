@@ -166,7 +166,7 @@ export function StoreSection({ products }: StoreSectionProps) {
               }
 
               // Prints: no carousel; just use the first image
-              const isPrint = product.category === 'prints';
+              const isPrint = (product.category ?? '').toLowerCase().includes('print');
               if (isPrint) {
                 gallery = gallery.length ? [gallery[0]] : gallery;
               }
