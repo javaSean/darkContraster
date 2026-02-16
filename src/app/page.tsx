@@ -255,6 +255,8 @@ function extractVariantImages(variant: any, product: any): string[] {
     normalizeToUrls(variant.previewUrls),
     normalizeToUrls(variant.previewUrl),
     normalizeToUrls(variant.previewImages),
+    normalizeToUrls(variant.externalPreviewUrl),
+    normalizeToUrls(variant.externalThumbnailUrl),
     normalizeToUrls(variant.files),
     normalizeToUrls(
       product.productVariants
@@ -269,17 +271,25 @@ function extractVariantImages(variant: any, product: any): string[] {
           entry?.previewUrl,
           entry?.previewImageUrl,
           entry?.previewImages,
+          entry?.externalPreviewUrl,
+          entry?.externalThumbnailUrl,
         ]),
     ),
   ];
 
   const flat = pools.flat();
-  const urls = flat
-    .filter((url) => typeof url === 'string' && url.length > 0)
-    .map((url) => resolveDevImage(url));
+  const urls = flat.filter((url) => typeof url === 'string' && url.length > 0).map((url) => resolveDevImage(url));
 
-  // keep order; avoid dedup so multiple mockups still show
-  return urls.filter(Boolean) as string[];
+  // Keep order but drop exact duplicates
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const u of urls) {
+    if (!u) continue;
+    if (seen.has(u)) continue;
+    seen.add(u);
+    unique.push(u);
+  }
+  return unique;
 }
 
 function normalizeToUrls(input: any): string[] {
