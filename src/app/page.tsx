@@ -223,6 +223,9 @@ function extractProductImage(product: any): string {
 }
 
 function extractProductImages(product: any): string[] {
+  const overrideGallery = getOverrideGallery(product);
+  if (overrideGallery.length) return overrideGallery;
+
   const pools = [
     normalizeToUrls(product.media),
     normalizeToUrls(product.images),
@@ -234,6 +237,15 @@ function extractProductImages(product: any): string[] {
   ];
   const flat = pools.flat();
   const urls = flat.filter((url) => typeof url === 'string' && url.length > 0).map((url) => resolveDevImage(url));
+
+  // Also pull in any folder override based on product name (for manuals)
+  const productName = (product?.name ?? product?.title ?? '').toLowerCase();
+  const folderMatch = Object.entries(PRODUCT_FOLDER_OVERRIDES).find(([needle]) => productName.includes(needle));
+  if (folderMatch) {
+    const folderImages = loadLocalFolderImages(folderMatch[1]);
+    urls.push(...folderImages.map((url) => resolveDevImage(url)));
+  }
+
   return urls;
 }
 
@@ -262,6 +274,9 @@ function extractVariantImage(variant: any, product: any): string | undefined {
 }
 
 function extractVariantImages(variant: any, product: any): string[] {
+  const overrideGallery = getOverrideGallery(product);
+  if (overrideGallery.length) return overrideGallery;
+
   const pools = [
     normalizeToUrls(variant.media),
     normalizeToUrls(variant.images),
@@ -306,7 +321,15 @@ function extractVariantImages(variant: any, product: any): string[] {
 
   // Name-based folder overrides (e.g., poems hardcover manual images)
   const productName = (product?.name ?? product?.title ?? '').toLowerCase();
-  const folderMatch = Object.entries(PRODUCT_FOLDER_OVERRIDES).find(([needle]) => productName.includes(needle));
+  let folderMatch = Object.entries(PRODUCT_FOLDER_OVERRIDES).find(([needle]) => productName.includes(needle));
+  if (
+    !folderMatch &&
+    productName.includes('hard') &&
+    productName.includes('cover') &&
+    (productName.includes('poem') || productName.includes('poems'))
+  ) {
+    folderMatch = ['hardcover-poem-fallback', 'hardcoverPoemPhotos'];
+  }
   if (folderMatch) {
     const folderImages = loadLocalFolderImages(folderMatch[1]);
     urls.push(...folderImages.map((url) => resolveDevImage(url)));
@@ -322,6 +345,34 @@ function extractVariantImages(variant: any, product: any): string[] {
     unique.push(u);
   }
   return unique;
+}
+
+function getOverrideGallery(product: any): string[] {
+  const pid = product?.id ?? product?.productId ?? product?.sku ?? '';
+  const name = (product?.name ?? product?.title ?? '').toLowerCase();
+
+  // Hard overrides: use only local folders, ignore remote images
+  const COLLAGE_ID = '98d6eaa2-f9c7-4c1d-ad26-b3cbd6f4be4c';
+  const isCollage = pid === COLLAGE_ID || name.includes('full page collages');
+  if (isCollage) {
+    return loadLocalFolderImages('hardcoverPhotos').map((url) => resolveDevImage(url));
+  }
+
+  const POEM_IDS = ['hardcover-poem-fallback'];
+  const poemMatch =
+    name.includes('collages & poems') ||
+    name.includes('collages and poems') ||
+    (name.includes('hard') && name.includes('cover') && (name.includes('poem') || name.includes('poems')));
+  if (poemMatch || POEM_IDS.includes(pid)) {
+    return loadLocalFolderImages('hardcoverPoemPhotos').map((url) => resolveDevImage(url));
+  }
+
+  // ID-based overrides table
+  const override =
+    PRODUCT_IMAGE_OVERRIDES[pid] || PRODUCT_IMAGE_OVERRIDES[product?.productId] || PRODUCT_IMAGE_OVERRIDES[product?.sku];
+  if (override?.length) return override.map((url) => resolveDevImage(url));
+
+  return [];
 }
 
 function normalizeToUrls(input: any): string[] {

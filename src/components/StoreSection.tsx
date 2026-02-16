@@ -136,15 +136,28 @@ export function StoreSection({ products }: StoreSectionProps) {
                 ? findVariantFromOptions(product, optionSelections)
                 : findVariantById(product, selectedVariants[product.id]) ?? product.variants[0];
               const displayPrice = resolvedVariant?.formattedPrice ?? product.price ?? '';
-              const baseGallery: string[] =
-                (resolvedVariant?.images && resolvedVariant.images.length > 0 && resolvedVariant.images) ||
-                (product.productImages && product.productImages.length > 0 && product.productImages) ||
-                (resolvedVariant?.image ? [resolvedVariant.image] : product.image ? [product.image] : []);
-              const gallerySource = baseGallery.length > 0 ? baseGallery : product.productImages ?? [];
-              const gallery: string[] = gallerySource;
+
+              const mergedGallery = [
+                ...(resolvedVariant?.images ?? []),
+                ...(product.productImages ?? []),
+                ...(resolvedVariant?.image ? [resolvedVariant.image] : []),
+                ...(product.image ? [product.image] : []),
+              ];
+              const gallery: string[] = Array.from(new Set(mergedGallery.filter(Boolean)));
               const galleryKey = `${product.id}-${resolvedVariant?.id ?? 'fallback'}`;
               const imageIndex = imageIndexes[galleryKey] ?? 0;
               const displayImage = gallery[imageIndex] ?? gallery[0] ?? '';
+
+              if (process.env.NODE_ENV !== 'production' && gallery.length === 1) {
+                console.log('Gallery debug', {
+                  product: product.name,
+                  variant: resolvedVariant?.title,
+                  galleryLength: gallery.length,
+                  gallery,
+                  variantImages: resolvedVariant?.images,
+                  productImages: product.productImages,
+                });
+              }
 
               return (
                 <article key={product.id} className="card store-card">
