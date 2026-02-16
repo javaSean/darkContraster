@@ -11,6 +11,24 @@ const FILTERS = [
   { label: 'Accessories', value: 'accessories' },
 ] as const;
 
+const PRINT_PRODUCT_IDS = new Set([
+  '1b15e816-495a-4941-925b-8a7082c9abb7',
+  '46808abf-1b57-4cfd-988c-ef4485c34763',
+  'e7f3ff6f-f053-4140-82d8-1fe3454242e9',
+  '78dcbc37-7331-407d-a3c5-caa566e951ed',
+  '5fa3855c-ecce-43d1-b660-926483f56839',
+  '4abdfb05-5313-4662-ba55-90818bdc4545',
+  'ead9ee7a-9d4f-4b59-9beb-5b549d7d88e8',
+  '4e5f0fe5-4dd1-4e1a-bdf9-711df51ae440',
+  '3e632d6d-d0f7-47d0-9877-dda49fb633f0',
+  '01f86836-7338-41a8-9eb9-297de67c6049',
+  '842f3273-f4ac-4419-bd19-a6e200d40fdd',
+  'aa3be191-d032-4428-b912-61607eaef744',
+  '95da42f1-d9e7-49da-8656-37ba482f3f31',
+  '89efb15c-50e0-4cc4-89b1-4b17f84df8b2',
+  '2247e0e8-766e-40e4-8fce-e62ff3950d13',
+]);
+
 type FilterValue = (typeof FILTERS)[number]['value'];
 
 type StoreSectionProps = {
