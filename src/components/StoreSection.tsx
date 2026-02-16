@@ -50,6 +50,7 @@ export function StoreSection({ products }: StoreSectionProps) {
     index: number;
     title: string;
   } | null>(null);
+  const lightboxRef = useRef<HTMLDivElement | null>(null);
   const {
     addItem,
     toggleCart,
@@ -94,6 +95,12 @@ export function StoreSection({ products }: StoreSectionProps) {
     });
     setImageIndexes({});
   }, [products]);
+
+  useEffect(() => {
+    if (lightbox && lightboxRef.current) {
+      lightboxRef.current.focus();
+    }
+  }, [lightbox]);
 
   const filteredProducts = useMemo(() => {
     if (activeFilter === 'all') return products;
@@ -419,7 +426,23 @@ export function StoreSection({ products }: StoreSectionProps) {
         role="dialog"
         aria-modal="true"
         aria-label={`${lightbox.title} preview`}
+        tabIndex={-1}
+        ref={lightboxRef}
         onClick={() => setLightbox(null)}
+        onKeyDown={(e) => {
+          if (!lightbox) return;
+          if (e.key === 'Escape') setLightbox(null);
+          if (lightbox.images.length > 1) {
+            if (e.key === 'ArrowLeft') {
+              setLightbox((prev) =>
+                prev ? { ...prev, index: (prev.index - 1 + prev.images.length) % prev.images.length } : prev,
+              );
+            }
+            if (e.key === 'ArrowRight') {
+              setLightbox((prev) => (prev ? { ...prev, index: (prev.index + 1) % prev.images.length } : prev));
+            }
+          }
+        }}
       >
         <div
           className={`lightbox-body ${lightbox.images.length > 1 ? '' : 'single'}`}
