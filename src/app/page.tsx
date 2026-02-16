@@ -355,7 +355,8 @@ function getOverrideGallery(product: any): string[] {
   const COLLAGE_ID = '98d6eaa2-f9c7-4c1d-ad26-b3cbd6f4be4c';
   const isCollage = pid === COLLAGE_ID || name.includes('full page collages');
   if (isCollage) {
-    return loadLocalFolderImages('hardcoverPhotos').map((url) => resolveDevImage(url));
+    const imgs = reorderCovers(loadLocalFolderImages('hardcoverPhotos'));
+    return imgs.map((url) => resolveDevImage(url));
   }
 
   const POEM_IDS = ['hardcover-poem-fallback'];
@@ -364,7 +365,8 @@ function getOverrideGallery(product: any): string[] {
     name.includes('collages and poems') ||
     (name.includes('hard') && name.includes('cover') && (name.includes('poem') || name.includes('poems')));
   if (poemMatch || POEM_IDS.includes(pid)) {
-    return loadLocalFolderImages('hardcoverPoemPhotos').map((url) => resolveDevImage(url));
+    const imgs = reorderCovers(loadLocalFolderImages('hardcoverPoemPhotos'));
+    return imgs.map((url) => resolveDevImage(url));
   }
 
   // ID-based overrides table
@@ -410,6 +412,27 @@ function loadLocalFolderImages(folderName: string): string[] {
   } catch {
     return [];
   }
+}
+
+function reorderCovers(list: string[]): string[] {
+  if (!list.length) return list;
+  const frontIdx = list.findIndex((f) => /cover[-_]?front/i.test(f));
+  const backIdx = list.findIndex((f) => /cover[-_]?back/i.test(f));
+  const items = list.slice();
+  const output: string[] = [];
+  if (frontIdx >= 0) {
+    output.push(items[frontIdx]);
+    items.splice(frontIdx, 1);
+  }
+  items.forEach((f) => {
+    if (f === '') return;
+    if (/cover[-_]?back/i.test(f)) return; // skip back for now
+    output.push(f);
+  });
+  if (backIdx >= 0 && list[backIdx]) {
+    output.push(list[backIdx]);
+  }
+  return output;
 }
 
 function normalizeTags(tags: unknown): string[] {

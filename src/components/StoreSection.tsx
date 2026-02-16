@@ -137,13 +137,39 @@ export function StoreSection({ products }: StoreSectionProps) {
                 : findVariantById(product, selectedVariants[product.id]) ?? product.variants[0];
               const displayPrice = resolvedVariant?.formattedPrice ?? product.price ?? '';
 
+              // Build gallery
               const mergedGallery = [
                 ...(resolvedVariant?.images ?? []),
                 ...(product.productImages ?? []),
                 ...(resolvedVariant?.image ? [resolvedVariant.image] : []),
                 ...(product.image ? [product.image] : []),
-              ];
-              const gallery: string[] = Array.from(new Set(mergedGallery.filter(Boolean)));
+              ].filter(Boolean) as string[];
+
+              // If productImages are local overrides (start with /images/), rely solely on them to avoid mixing Gelato URLs.
+              const hasLocalOverride =
+                product.productImages?.length &&
+                product.productImages.every((src) => typeof src === 'string' && src.startsWith('/images/'));
+
+              const sourceGallery = hasLocalOverride ? (product.productImages as string[]) : mergedGallery;
+
+              // Deduplicate while treating proxied and direct URLs as the same image
+              const seen = new Set<string>();
+              let gallery: string[] = [];
+              for (const url of sourceGallery) {
+                if (!url) continue;
+                const normalized = url.startsWith('/api/image-proxy?url=')
+                  ? decodeURIComponent(url.replace('/api/image-proxy?url=', ''))
+                  : url;
+                if (seen.has(normalized)) continue;
+                seen.add(normalized);
+                gallery.push(url);
+              }
+
+              // Prints: no carousel; just use the first image
+              const isPrint = product.category === 'prints';
+              if (isPrint) {
+                gallery = gallery.length ? [gallery[0]] : gallery;
+              }
               const galleryKey = `${product.id}-${resolvedVariant?.id ?? 'fallback'}`;
               const imageIndex = imageIndexes[galleryKey] ?? 0;
               const displayImage = gallery[imageIndex] ?? gallery[0] ?? '';
