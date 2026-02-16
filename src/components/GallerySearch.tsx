@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { MouseEvent } from 'react';
 
 type GalleryImage = {
   title: string;
@@ -14,6 +15,8 @@ interface GallerySearchProps {
 export function GallerySearch({ images }: GallerySearchProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const fullscreenTargetRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const reset = () => setSelectedIndex(null);
@@ -32,6 +35,36 @@ export function GallerySearch({ images }: GallerySearchProps) {
       setSelectedIndex(null);
     }
   }, [filtered, selectedIndex]);
+
+  useEffect(() => {
+    function handleFullscreenChange() {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  async function handleFullscreenToggle(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    if (document.fullscreenElement || (document as Document & { webkitFullscreenElement?: Element }).webkitFullscreenElement) {
+      const doc = document as Document & { webkitExitFullscreen?: () => Promise<void> | void };
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if (doc.webkitExitFullscreen) {
+        await doc.webkitExitFullscreen();
+      }
+      return;
+    }
+    const target = fullscreenTargetRef.current;
+    if (target?.requestFullscreen) {
+      await target.requestFullscreen();
+    } else if (target) {
+      const maybeWebkit = target as HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void };
+      if (maybeWebkit.webkitRequestFullscreen) {
+        await maybeWebkit.webkitRequestFullscreen();
+      }
+    }
+  }
 
   const visibleImages =
     selectedIndex !== null && filtered[selectedIndex]
@@ -84,7 +117,10 @@ export function GallerySearch({ images }: GallerySearchProps) {
               }
             }}
           >
-            <div className="card-media">
+            <div
+              className="card-media"
+              ref={selectedIndex !== null ? fullscreenTargetRef : null}
+            >
               <img
                 src={piece.src}
                 alt={piece.title}
@@ -95,6 +131,16 @@ export function GallerySearch({ images }: GallerySearchProps) {
                   objectFit: selectedIndex !== null ? 'contain' : 'cover',
                 }}
               />
+              {selectedIndex !== null && (
+                <button
+                  type="button"
+                  className="gallery-fullscreen-toggle"
+                  onClick={handleFullscreenToggle}
+                  aria-label={isFullscreen ? 'Exit full screen' : 'View full screen'}
+                >
+                  {isFullscreen ? '↘︎' : '↗︎'}
+                </button>
+              )}
             </div>
             <header>
               <h3>{piece.title}</h3>

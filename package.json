@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings=0"
+    "lint": "eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings=0",
+    "cache:dev-images": "node scripts/cache-dev-images.js"
   },
   "keywords": [],
   "author": "",

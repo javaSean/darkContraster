@@ -374,9 +374,6 @@ export function StoreSection({ products }: StoreSectionProps) {
         aria-label={`${lightbox.title} preview`}
         onClick={() => setLightbox(null)}
       >
-        <button type="button" className="lightbox-close" aria-label="Close" onClick={() => setLightbox(null)}>
-          ×
-        </button>
         <div
           className={`lightbox-body ${lightbox.images.length > 1 ? '' : 'single'}`}
           onClick={(e) => e.stopPropagation()}
@@ -401,15 +398,20 @@ export function StoreSection({ products }: StoreSectionProps) {
             </button>
           )}
           <div className="lightbox-image">
-            <Image
-              src={lightbox.images[lightbox.index]}
-              alt={lightbox.title}
-              width={1400}
-              height={1400}
-              sizes="(max-width: 768px) 95vw, 80vw"
-              unoptimized
-              style={{ objectFit: 'contain', maxHeight: '80vh', width: '100%' }}
-            />
+            <div className="lightbox-frame">
+              <button type="button" className="lightbox-close" aria-label="Close" onClick={() => setLightbox(null)}>
+                ×
+              </button>
+              <Image
+                src={lightbox.images[lightbox.index]}
+                alt={lightbox.title}
+                width={1400}
+                height={1400}
+                sizes="(max-width: 768px) 95vw, 80vw"
+                unoptimized
+                style={{ objectFit: 'contain', maxHeight: '80vh', width: '100%' }}
+              />
+            </div>
           </div>
           {lightbox.images.length > 1 && (
             <button
