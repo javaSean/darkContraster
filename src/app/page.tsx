@@ -632,6 +632,8 @@ function formatPriceValue(amount?: number, currency?: string): string {
 
 function resolveDevImage(url?: string | null): string {
   if (!url) return '';
+  // If already a relative path, return as-is (it points to /public)
+  if (url.startsWith('/')) return url;
   // In development, prefer cached local copy if manifest maps this URL
   if (process.env.NODE_ENV === 'development') {
     const manifest = getDevImageManifest();
