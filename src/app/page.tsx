@@ -30,6 +30,23 @@ const navigationItems = [
   { label: 'Bio', href: '#bio' },
 ];
 
+// Local overrides for products whose cloud mockups are incomplete.
+const PRODUCT_IMAGE_OVERRIDES: Record<string, string[]> = {
+  // Dark Contraster Hardcover Photo Book - full page collages
+  '98d6eaa2-f9c7-4c1d-ad26-b3cbd6f4be4c': [
+    '/images/hardcoverPhotos/cover-front.webp',
+    '/images/hardcoverPhotos/inner-spread-2.webp',
+    '/images/hardcoverPhotos/inner-spread-3.webp',
+    '/images/hardcoverPhotos/inner-spread-4.webp',
+  ],
+};
+
+// Folder-based overrides, matched by product name (case-insensitive substring).
+const PRODUCT_FOLDER_OVERRIDES: Record<string, string> = {
+  'hard cover photo book - collages & poems': 'hardcoverPoemPhotos',
+  'hardcover photo book - collages & poems': 'hardcoverPoemPhotos',
+};
+
 export default async function HomePage() {
   const storeProducts = await fetchGelatoProducts();
 
@@ -280,6 +297,21 @@ function extractVariantImages(variant: any, product: any): string[] {
   const flat = pools.flat();
   const urls = flat.filter((url) => typeof url === 'string' && url.length > 0).map((url) => resolveDevImage(url));
 
+  // Append any local overrides for this product (e.g., hardcover book manual mockups)
+  const override =
+    PRODUCT_IMAGE_OVERRIDES[product?.id] || PRODUCT_IMAGE_OVERRIDES[product?.productId] || PRODUCT_IMAGE_OVERRIDES[product?.sku];
+  if (override?.length) {
+    urls.push(...override.map((url) => resolveDevImage(url)));
+  }
+
+  // Name-based folder overrides (e.g., poems hardcover manual images)
+  const productName = (product?.name ?? product?.title ?? '').toLowerCase();
+  const folderMatch = Object.entries(PRODUCT_FOLDER_OVERRIDES).find(([needle]) => productName.includes(needle));
+  if (folderMatch) {
+    const folderImages = loadLocalFolderImages(folderMatch[1]);
+    urls.push(...folderImages.map((url) => resolveDevImage(url)));
+  }
+
   // Keep order but drop exact duplicates
   const seen = new Set<string>();
   const unique: string[] = [];
@@ -317,6 +349,16 @@ function normalizeToUrls(input: any): string[] {
     }
   });
   return urls;
+}
+
+function loadLocalFolderImages(folderName: string): string[] {
+  const dir = path.join(process.cwd(), 'public', 'images', folderName);
+  try {
+    const files = fs.readdirSync(dir).filter((file) => /\.(jpe?g|png|webp|gif)$/i.test(file));
+    return files.sort().map((file) => `/images/${folderName}/${file}`);
+  } catch {
+    return [];
+  }
 }
 
 function normalizeTags(tags: unknown): string[] {
