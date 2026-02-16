@@ -425,26 +425,26 @@ export function StoreSection({ products }: StoreSectionProps) {
           className={`lightbox-body ${lightbox.images.length > 1 ? '' : 'single'}`}
           onClick={(e) => e.stopPropagation()}
         >
-          {lightbox.images.length > 1 && (
-            <button
-              type="button"
-              className="lightbox-nav prev"
-              aria-label="Previous image"
-              onClick={() =>
-                setLightbox((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        index: (prev.index - 1 + prev.images.length) % prev.images.length,
-                      }
-                    : prev,
-                )
-              }
-            >
-              ‹
-            </button>
-          )}
           <div className="lightbox-image">
+            {lightbox.images.length > 1 && (
+              <button
+                type="button"
+                className="lightbox-nav prev"
+                aria-label="Previous image"
+                onClick={() =>
+                  setLightbox((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          index: (prev.index - 1 + prev.images.length) % prev.images.length,
+                        }
+                      : prev,
+                  )
+                }
+              >
+                ‹
+              </button>
+            )}
             <div className="lightbox-frame">
               <button type="button" className="lightbox-close" aria-label="Close" onClick={() => setLightbox(null)}>
                 ×
@@ -459,26 +459,26 @@ export function StoreSection({ products }: StoreSectionProps) {
                 style={{ objectFit: 'contain', maxHeight: '80vh', width: '100%' }}
               />
             </div>
+            {lightbox.images.length > 1 && (
+              <button
+                type="button"
+                className="lightbox-nav next"
+                aria-label="Next image"
+                onClick={() =>
+                  setLightbox((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          index: (prev.index + 1) % prev.images.length,
+                        }
+                      : prev,
+                  )
+                }
+              >
+                ›
+              </button>
+            )}
           </div>
-          {lightbox.images.length > 1 && (
-            <button
-              type="button"
-              className="lightbox-nav next"
-              aria-label="Next image"
-              onClick={() =>
-                setLightbox((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        index: (prev.index + 1) % prev.images.length,
-                      }
-                    : prev,
-                )
-              }
-            >
-              ›
-            </button>
-          )}
         </div>
         {lightbox.images.length > 1 && (
           <div className="lightbox-dots">

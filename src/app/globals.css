@@ -1343,7 +1343,7 @@ margin-left:0;
 
 .lightbox-body {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr;
   align-items: center;
   gap: 1rem;
   width: min(92vw, 1200px);
