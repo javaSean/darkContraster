@@ -193,17 +193,6 @@ export function StoreSection({ products }: StoreSectionProps) {
               const imageIndex = imageIndexes[galleryKey] ?? 0;
               const displayImage = gallery[imageIndex] ?? gallery[0] ?? '';
 
-              if (process.env.NODE_ENV !== 'production' && gallery.length === 1) {
-                console.log('Gallery debug', {
-                  product: product.name,
-                  variant: resolvedVariant?.title,
-                  galleryLength: gallery.length,
-                  gallery,
-                  variantImages: resolvedVariant?.images,
-                  productImages: product.productImages,
-                });
-              }
-
               return (
                 <article key={product.id} className="card store-card">
                 <header className="store-card-header">
