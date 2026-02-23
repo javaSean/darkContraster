@@ -290,7 +290,19 @@ function buildProductResolver(products: RawProduct[]) {
     const key = needle.trim();
     const stripped = stripSuffix(key);
     const suff = suffixDigits(key);
-    return map.get(key) || map.get(stripped) || (suff ? map.get(suff) : undefined);
+    const direct = map.get(key) || map.get(stripped) || (suff ? map.get(suff) : undefined);
+    if (direct) return direct;
+
+    // Numeric fallback: match any product whose id/sku ends with _<needle> or <needle>
+    if (/^\d+$/.test(key)) {
+      const numeric = key;
+      const found = products.find((p) => {
+        const candidates = [p.id, p.productId, p.sku].flat().filter(Boolean).map((id) => String(id));
+        return candidates.some((id) => id.endsWith(`_${numeric}`) || id.endsWith(numeric));
+      });
+      if (found) return found;
+    }
+    return undefined;
   };
 }
 
