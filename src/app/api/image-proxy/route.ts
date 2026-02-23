@@ -9,7 +9,10 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const target = new URL(url);
+    // Accept absolute URLs and also resolve site-relative paths against the current origin
+    const target = url.startsWith('/')
+      ? new URL(url, req.nextUrl.origin)
+      : new URL(url);
     const response = await fetch(target.toString(), {
       headers: {
         // Spoof UA and referer to avoid hotlink 403s from WP/Photon
@@ -42,7 +45,7 @@ export async function GET(req: NextRequest) {
     }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Fetch failed' },
-      { status: 500 },
+      { status: 400 },
     );
   }
 }
