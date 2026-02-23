@@ -240,39 +240,51 @@ function parseProductsParam(input: string): { productId: string; quantity: numbe
     .filter((entry) => entry.productId);
 }
 
+type Resolved = { product: RawProduct; variant?: RawVariant };
+
 function buildProductResolver(products: RawProduct[]) {
-  const map = new Map<string, RawProduct>();
+  const productMap = new Map<string, RawProduct>();
+  const variantMap = new Map<string, { product: RawProduct; variant: RawVariant }>();
 
   products.forEach((p) => {
-    const ids = [p.id, p.productId, p.sku]
-      .flat()
-      .filter(Boolean)
-      .map((id) => String(id));
+    const productIds = [p.id, p.productId, p.sku].flat().filter(Boolean).map(String);
+    productIds.forEach((id) => {
+      addKeys(productMap, id, p);
+    });
 
-    ids.forEach((id) => {
-      map.set(id, p);
-      const base = stripSuffix(id);
-      if (base !== id) map.set(base, p);
-      const suffix = suffixDigits(id);
-      if (suffix) map.set(suffix, p);
+    const variants: RawVariant[] = Array.isArray(p.variantDetails)
+      ? p.variantDetails
+      : Array.isArray(p.productVariants)
+        ? p.productVariants
+        : Array.isArray(p.variants)
+          ? p.variants
+          : [];
+
+    variants.forEach((v) => {
+      const vid = [v.id, v.variantId, v.productVariantId, v.externalId].flat().filter(Boolean).map(String);
+      vid.forEach((id) => {
+        addKeys(variantMap, id, { product: p, variant: v });
+      });
     });
   });
 
-  return (needle: string): RawProduct | undefined => {
+  return (needle: string): Resolved | undefined => {
     const key = needle.trim();
-    const stripped = stripSuffix(key);
-    const suff = suffixDigits(key);
-    const direct = map.get(key) || map.get(stripped) || (suff ? map.get(suff) : undefined);
-    if (direct) return direct;
+    const variantHit = variantMap.get(key) || variantMap.get(stripSuffix(key)) || variantMap.get(suffixDigits(key) ?? '');
+    if (variantHit) return variantHit;
+    const productHit = productMap.get(key) || productMap.get(stripSuffix(key)) || productMap.get(suffixDigits(key) ?? '');
+    if (productHit) return { product: productHit };
 
-    // Numeric fallback: match any product whose id/sku ends with _<needle> or <needle>
+    // Numeric fallback on variant or product IDs
     if (/^\d+$/.test(key)) {
       const numeric = key;
-      const found = products.find((p) => {
-        const candidates = [p.id, p.productId, p.sku].flat().filter(Boolean).map((id) => String(id));
+      const vfound = Array.from(variantMap.entries()).find(([id]) => id.endsWith(`_${numeric}`) || id.endsWith(numeric));
+      if (vfound) return vfound[1];
+      const pfound = products.find((p) => {
+        const candidates = [p.id, p.productId, p.sku].flat().filter(Boolean).map(String);
         return candidates.some((id) => id.endsWith(`_${numeric}`) || id.endsWith(numeric));
       });
-      if (found) return found;
+      if (pfound) return { product: pfound };
     }
     return undefined;
   };
@@ -294,6 +306,15 @@ function suffixDigits(id: string): string | undefined {
   // if id itself is digits
   if (/^\d+$/.test(id)) return id;
   return undefined;
+}
+
+function addKeys<K, V>(map: Map<string, V>, id: string, value: V) {
+  const base = id;
+  map.set(base, value);
+  const stripped = stripSuffix(base);
+  if (stripped !== base) map.set(stripped, value);
+  const suff = suffixDigits(base);
+  if (suff) map.set(suff, value);
 }
 
 function pickImage(variant?: RawVariant, product?: RawProduct): string | undefined {
