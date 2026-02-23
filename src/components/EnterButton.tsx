@@ -4,9 +4,15 @@ import { useEffect } from 'react';
 
 export function EnterButton() {
   useEffect(() => {
-    if (window.location.hash === '#site-root') {
-      document.body.classList.add('site-entered');
-    }
+    const hash = window.location.hash;
+    const params = new URLSearchParams(window.location.search);
+    const sectionParam = params.get('section');
+    const shouldEnter =
+      hash === '#site-root' ||
+      hash === '#store' ||
+      sectionParam === 'store';
+
+    if (shouldEnter) document.body.classList.add('site-entered');
   }, []);
 
   const handleClick = () => {
