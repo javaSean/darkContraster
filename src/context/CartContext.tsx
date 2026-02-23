@@ -19,6 +19,7 @@ type CartContextValue = {
   cartCount: number;
   cartTotalLabel: string;
   addItem: (item: CartItem) => void;
+  replaceItems: (items: CartItem[]) => void;
   updateQuantity: (productId: string, variantId: string | undefined, delta: number) => void;
   removeItem: (productId: string, variantId?: string) => void;
   toggleCart: () => void;
@@ -97,6 +98,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   }
 
+  function replaceItems(nextItems: CartItem[]) {
+    setItems(nextItems);
+  }
+
   function updateQuantity(productId: string, variantId: string | undefined, delta: number) {
     setItems((prev) =>
       prev
@@ -159,6 +164,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     cartCount,
     cartTotalLabel,
     addItem,
+    replaceItems,
     updateQuantity,
     removeItem,
     toggleCart: () => setCartOpen((prev) => !prev),
