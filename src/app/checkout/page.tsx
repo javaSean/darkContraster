@@ -1,4 +1,7 @@
-"use client";
+'use client';
+
+// Ensure this page always renders server-side (avoids static 404 on some hosts)
+export const dynamic = 'force-dynamic';
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
