@@ -288,7 +288,9 @@ function buildProductResolver(products: RawProduct[]) {
 
   return (needle: string): RawProduct | undefined => {
     const key = needle.trim();
-    return map.get(key) || map.get(stripSuffix(key)) || map.get(suffixDigits(key));
+    const stripped = stripSuffix(key);
+    const suff = suffixDigits(key);
+    return map.get(key) || map.get(stripped) || (suff ? map.get(suff) : undefined);
   };
 }
 
