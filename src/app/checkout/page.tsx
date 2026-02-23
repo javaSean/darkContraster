@@ -74,7 +74,11 @@ function CheckoutPrefillInner() {
 
       try {
         const res = await fetch('/api/store-products', { cache: 'no-store' });
-        if (!res.ok) throw new Error('Could not load products');
+        if (!res.ok) {
+          setMessage('Could not load products. Redirecting to store…');
+          router.replace('/#store');
+          return;
+        }
         const data = await res.json();
         const products: RawProduct[] = Array.isArray(data?.products)
           ? data.products
@@ -83,6 +87,12 @@ function CheckoutPrefillInner() {
             : Array.isArray(data)
               ? data
               : [];
+
+        if (!products.length) {
+          setMessage('Products unavailable. Redirecting to store…');
+          router.replace('/#store');
+          return;
+        }
 
         const parsedList = parseProductsParam(productsParam);
         const targets = parsedList.length
@@ -136,7 +146,39 @@ function CheckoutPrefillInner() {
           });
         }
 
-        if (!itemsToAdd.length) throw new Error('No matching products to add');
+        if (!itemsToAdd.length) {
+          // Fallback: add the first available product so checkout can proceed even if Meta IDs don't match
+          const fallback = products[0];
+          if (!fallback) {
+            setMessage('No matching products. Redirecting to store…');
+            router.replace('/#store');
+            return;
+          }
+          const variants: RawVariant[] = Array.isArray(fallback.variantDetails)
+            ? fallback.variantDetails
+            : Array.isArray(fallback.productVariants)
+              ? fallback.productVariants
+              : Array.isArray(fallback.variants)
+                ? fallback.variants
+                : [];
+          const variant = variants[0];
+          const priceValue = normalizePrice(variant?.price ?? fallback.price);
+          const currency = normalizeCurrency(
+            variant?.currency ?? (variant as any)?.price?.currency ?? (fallback as any)?.price?.currency ?? 'USD',
+          );
+          if (!priceValue || !currency) throw new Error('No matching products to add');
+          itemsToAdd.push({
+            productId: String(fallback.id ?? fallback.productId ?? fallback.sku ?? 'fallback'),
+            variantId:
+              variant ? (variant.id ?? variant.variantId ?? variant.productVariantId ?? variant.externalId ?? undefined) : undefined,
+            name: fallback.name ?? fallback.title ?? 'Product',
+            variantTitle: variant?.title ?? variant?.name,
+            unitAmount: priceValue,
+            currency,
+            image: pickImage(variant, fallback),
+            quantity: 1,
+          });
+        }
 
         // Replace cart with provided items
         replaceItems(itemsToAdd);
