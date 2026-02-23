@@ -36,22 +36,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing product details for checkout' }, { status: 400 });
     }
 
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = normalized.map((item) => ({
-      price_data: {
-        currency: item.currency.toLowerCase(),
-        unit_amount: item.unitAmount,
-        tax_behavior: 'exclusive',
-        product_data: {
-          name: item.variantTitle ? `${item.name} — ${item.variantTitle}` : item.name,
-          images: item.image ? [resolveImageUrl(item.image)] : undefined,
-          metadata: {
-            productId: item.productId ?? '',
-            variantId: item.variantId ?? '',
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = normalized.map((item) => {
+      const imageUrl = resolveImageUrl(item.image);
+      return {
+        price_data: {
+          currency: item.currency.toLowerCase(),
+          unit_amount: item.unitAmount,
+          tax_behavior: 'exclusive',
+          product_data: {
+            name: item.variantTitle ? `${item.name} — ${item.variantTitle}` : item.name,
+            images: imageUrl ? [imageUrl] : undefined,
+            metadata: {
+              productId: item.productId ?? '',
+              variantId: item.variantId ?? '',
+            },
           },
         },
-      },
-      quantity: item.quantity ?? 1,
-    }));
+        quantity: item.quantity ?? 1,
+      };
+    });
 
     const cartSlim = normalized.map((item) => ({
       p: item.productId ?? '',
@@ -72,6 +75,12 @@ export async function POST(request: Request) {
 
     const shippingAmount = Math.round(shipping.amount);
     const shippingCountry = String(shipping.country).toUpperCase() as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry;
+
+    console.log('Creating Stripe session', {
+      lineItems: lineItems.length,
+      shippingAmount,
+      shippingCountry,
+    });
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -115,12 +124,20 @@ export async function POST(request: Request) {
   }
 }
 
-function resolveImageUrl(src: string): string {
-  if (!src) return '';
-  if (src.startsWith('http://') || src.startsWith('https://')) {
-    return src;
+function resolveImageUrl(src?: string): string | undefined {
+  if (!src) return undefined;
+  const candidate = src.startsWith('http://') || src.startsWith('https://')
+    ? src
+    : `${siteUrl}${src.startsWith('/') ? src : `/${src}`}`;
+
+  try {
+    const parsed = new URL(candidate);
+    if (!parsed.protocol || !parsed.hostname) return undefined;
+    return parsed.toString();
+  } catch {
+    console.warn('Dropping invalid product image URL', { src, candidate });
+    return undefined;
   }
-  return `${siteUrl}${src.startsWith('/') ? src : `/${src}`}`;
 }
 
 function normalizeBaseUrl(value: string): string {
