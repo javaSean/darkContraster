@@ -73,7 +73,7 @@ function CheckoutPrefillInner() {
       setMessage('Adding your item…');
 
       try {
-        const res = await fetch('/api/store-products', { cache: 'no-store' });
+        const res = await fetch('/api/store-products?includeAll=1', { cache: 'no-store' });
         if (!res.ok) {
           setMessage('Could not load products. Redirecting to store…');
           router.replace('/#store');

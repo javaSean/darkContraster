@@ -38,27 +38,31 @@ export async function GET(req: NextRequest) {
           ? data
           : [];
 
-    const filteredProducts = rawProducts.filter((product: any) => {
-      const status = String(product.status ?? '').toLowerCase();
-      const connectionStatus = String(product.connectionStatus ?? '').toLowerCase();
-      const tags = Array.isArray(product.tags)
-        ? product.tags.map((t: any) => String(t).toLowerCase())
-        : [];
-      const ignoredFlag = Boolean(product.ignore ?? product.ignored ?? product.hidden);
+    const includeAll = req.nextUrl.searchParams.get('includeAll') === '1';
 
-      // Exclude publishing errors, drafts, inactive/unpublished, explicit ignored/hidden status or flag, or ignore/hidden tag
-      const isBadStatus =
-        status === 'publishing_error' ||
-        status === 'draft' ||
-        status === 'inactive' ||
-        status === 'unpublished' ||
-        status === 'ignored';
-      const isIgnoredTag = tags.includes('ignore') || tags.includes('hidden');
-      const isIgnoredConnection = connectionStatus === 'ignored';
+    const filteredProducts = includeAll
+      ? rawProducts
+      : rawProducts.filter((product: any) => {
+          const status = String(product.status ?? '').toLowerCase();
+          const connectionStatus = String(product.connectionStatus ?? '').toLowerCase();
+          const tags = Array.isArray(product.tags)
+            ? product.tags.map((t: any) => String(t).toLowerCase())
+            : [];
+          const ignoredFlag = Boolean(product.ignore ?? product.ignored ?? product.hidden);
 
-      // Drop when explicitly ignored; otherwise allow
-      return !isBadStatus && !isIgnoredTag && !ignoredFlag && !isIgnoredConnection;
-    });
+          // Exclude publishing errors, drafts, inactive/unpublished, explicit ignored/hidden status or flag, or ignore/hidden tag
+          const isBadStatus =
+            status === 'publishing_error' ||
+            status === 'draft' ||
+            status === 'inactive' ||
+            status === 'unpublished' ||
+            status === 'ignored';
+          const isIgnoredTag = tags.includes('ignore') || tags.includes('hidden');
+          const isIgnoredConnection = connectionStatus === 'ignored';
+
+          // Drop when explicitly ignored; otherwise allow
+          return !isBadStatus && !isIgnoredTag && !ignoredFlag && !isIgnoredConnection;
+        });
 
     const enrichedProducts = await Promise.all(
       filteredProducts.map(async (product: any) => {
