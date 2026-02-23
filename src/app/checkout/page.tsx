@@ -137,6 +137,35 @@ function CheckoutPrefillInner() {
           added += 1;
         }
 
+        // Fallback: if Meta sends unknown IDs, add the first available product so checkout can proceed
+        if (!added && products.length) {
+          const fallback = products[0];
+          const variants: RawVariant[] = Array.isArray(fallback.variantDetails)
+            ? fallback.variantDetails
+            : Array.isArray(fallback.productVariants)
+              ? fallback.productVariants
+              : Array.isArray(fallback.variants)
+                ? fallback.variants
+                : [];
+          const variant = variants[0];
+          const priceValue = normalizePrice(variant?.price ?? fallback.price);
+          const currency = normalizeCurrency(variant?.currency ?? (variant?.price as any)?.currency ?? fallback.price?.currency ?? 'USD');
+          if (priceValue && currency) {
+            const image = pickImage(variant, fallback);
+            addItem({
+              productId: String(fallback.id ?? fallback.productId ?? fallback.sku ?? 'fallback'),
+              variantId: variant ? (variant.id ?? variant.variantId ?? variant.productVariantId ?? variant.externalId ?? undefined) : undefined,
+              name: fallback.name ?? fallback.title ?? 'Product',
+              variantTitle: variant?.title ?? variant?.name,
+              unitAmount: priceValue,
+              currency,
+              image,
+              quantity: 1,
+            });
+            added = 1;
+          }
+        }
+
         if (!added) throw new Error('No matching products to add');
 
         if (couponParam) setCouponCode(couponParam);
