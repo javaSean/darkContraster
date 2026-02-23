@@ -12,7 +12,19 @@ export function EnterButton() {
       hash === '#store' ||
       sectionParam === 'store';
 
-    if (shouldEnter) document.body.classList.add('site-entered');
+    if (shouldEnter) {
+      document.body.classList.add('site-entered');
+      // Ensure we scroll to the store section once layout is ready
+      const scrollToStore = () => {
+        const target = document.getElementById('store');
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      };
+      requestAnimationFrame(() => {
+        requestAnimationFrame(scrollToStore);
+      });
+    }
   }, []);
 
   const handleClick = () => {
