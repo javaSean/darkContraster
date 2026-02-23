@@ -114,12 +114,12 @@ function CheckoutPrefillInner() {
           const match = resolveProduct(t.productId);
           if (!match) continue;
 
-        const variants: RawVariant[] = Array.isArray(match.variantDetails)
-          ? match.variantDetails
-          : Array.isArray(match.productVariants)
-            ? match.productVariants
-            : Array.isArray(match.variants)
-              ? match.variants
+        const variants: RawVariant[] = Array.isArray(match.product.variantDetails)
+          ? match.product.variantDetails
+          : Array.isArray(match.product.productVariants)
+            ? match.product.productVariants
+            : Array.isArray(match.product.variants)
+              ? match.product.variants
               : [];
 
         const variant = t.variantId
