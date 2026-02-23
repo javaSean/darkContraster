@@ -94,6 +94,8 @@ function CheckoutPrefillInner() {
           return;
         }
 
+        const resolveProduct = buildProductResolver(products);
+
         const parsedList = parseProductsParam(productsParam);
         const targets = parsedList.length
           ? parsedList
@@ -107,11 +109,9 @@ function CheckoutPrefillInner() {
           return;
         }
 
-        const itemsToAdd = [];
+        const itemsToAdd: any[] = [];
         for (const t of targets.slice(0, 10)) {
-          const match = products.find((p) =>
-            [p.id, p.productId, p.sku].filter(Boolean).some((id) => String(id).trim() === t.productId),
-          );
+          const match = resolveProduct(t.productId);
           if (!match) continue;
 
           const variants: RawVariant[] = Array.isArray(match.variantDetails)
@@ -266,6 +266,48 @@ function parseProductsParam(input: string): { productId: string; quantity: numbe
       return { productId: pid, quantity: qty, variantId: vid };
     })
     .filter((entry) => entry.productId);
+}
+
+function buildProductResolver(products: RawProduct[]) {
+  const map = new Map<string, RawProduct>();
+
+  products.forEach((p) => {
+    const ids = [p.id, p.productId, p.sku]
+      .flat()
+      .filter(Boolean)
+      .map((id) => String(id));
+
+    ids.forEach((id) => {
+      map.set(id, p);
+      const base = stripSuffix(id);
+      if (base !== id) map.set(base, p);
+      const suffix = suffixDigits(id);
+      if (suffix) map.set(suffix, p);
+    });
+  });
+
+  return (needle: string): RawProduct | undefined => {
+    const key = needle.trim();
+    return map.get(key) || map.get(stripSuffix(key)) || map.get(suffixDigits(key));
+  };
+}
+
+function stripSuffix(id: string): string {
+  const idx = id.lastIndexOf('_');
+  if (idx > 0 && /^\d+$/.test(id.slice(idx + 1))) {
+    return id.slice(0, idx);
+  }
+  return id;
+}
+
+function suffixDigits(id: string): string | undefined {
+  const idx = id.lastIndexOf('_');
+  if (idx > 0 && /^\d+$/.test(id.slice(idx + 1))) {
+    return id.slice(idx + 1);
+  }
+  // if id itself is digits
+  if (/^\d+$/.test(id)) return id;
+  return undefined;
 }
 
 function pickImage(variant?: RawVariant, product?: RawProduct): string | undefined {
