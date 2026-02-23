@@ -4,16 +4,17 @@ import { NextResponse } from 'next/server';
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
 
+const defaultSiteUrl = 'https://www.darkcontraster.com';
 const siteUrl = normalizeBaseUrl(
   process.env.NEXT_PUBLIC_SITE_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'),
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : defaultSiteUrl),
 );
 
 const successUrl = normalizeStripeUrl(
-  process.env.STRIPE_SUCCESS_URL ?? `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+  process.env.STRIPE_SUCCESS_URL ?? `${siteUrl || defaultSiteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
 );
 const cancelUrl = normalizeStripeUrl(
-  process.env.STRIPE_CANCEL_URL ?? `${siteUrl}/#store`,
+  process.env.STRIPE_CANCEL_URL ?? `${siteUrl || defaultSiteUrl}/#store`,
 );
 
 export async function POST(request: Request) {
@@ -114,9 +115,19 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error('Stripe checkout error', error);
+    const err = error as any;
+    const stripeMsg = err?.raw?.message ?? err?.message ?? 'Unable to start checkout';
+    const stripeParam = err?.raw?.param;
+    console.error('Stripe checkout error', {
+      message: stripeMsg,
+      param: stripeParam,
+      type: err?.type,
+      code: err?.code,
+      successUrl,
+      cancelUrl,
+    });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unable to start checkout' },
+      { error: stripeMsg, param: stripeParam },
       { status: 500 },
     );
   }
