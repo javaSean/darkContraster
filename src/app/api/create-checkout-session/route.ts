@@ -48,6 +48,8 @@ export async function POST(request: Request) {
     const shipping = body?.shipping as
       | { amount?: number; country?: string; label?: string }
       | undefined;
+    const couponRaw = typeof body?.coupon === 'string' ? body.coupon.trim() : '';
+    const coupon = couponRaw && couponRaw.startsWith('promo_') ? couponRaw : '';
 
     const normalized = items
       .map((item) => normalizeItem(item))
@@ -99,6 +101,7 @@ export async function POST(request: Request) {
       lineItems: lineItems.length,
       shippingAmount,
       shippingCountry,
+      coupon: coupon || 'none',
     });
 
     const session = await stripe.checkout.sessions.create({
@@ -122,6 +125,7 @@ export async function POST(request: Request) {
           },
         },
       ],
+      discounts: coupon ? [{ promotion_code: coupon }] : undefined,
       line_items: lineItems,
       metadata: {
         cart: cartMetadata,
@@ -130,6 +134,7 @@ export async function POST(request: Request) {
         shippingAmount: String(shippingAmount),
         shippingCountry,
         source: 'darkContraster',
+        coupon,
       },
     });
 

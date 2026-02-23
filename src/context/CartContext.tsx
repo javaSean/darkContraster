@@ -29,8 +29,10 @@ type CartContextValue = {
   postalCode: string;
   shippingAmount: number | null;
   shippingLabel: string;
+  couponCode: string;
   setShippingCountry: (next: string) => void;
   setPostalCode: (next: string) => void;
+  setCouponCode: (next: string) => void;
   checkoutCart: () => Promise<void>;
   purchasingId: string | null;
   computeShippingPreview: () => { amountCents: number | null; label: string };
@@ -47,6 +49,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [postalCode, setPostalCode] = useState('');
   const [shippingAmount, setShippingAmount] = useState<number | null>(null);
   const [shippingLabel, setShippingLabel] = useState('Standard shipping');
+  const [couponCode, setCouponCode] = useState('');
 
   const cartCount = useMemo(
     () => items.reduce((total, item) => total + item.quantity, 0),
@@ -141,6 +144,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           country: shippingCountry,
           label: shippingLabel,
         },
+        couponCode || undefined,
       );
     } catch (error) {
       console.error(error);
@@ -165,8 +169,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     postalCode,
     shippingAmount,
     shippingLabel,
+    couponCode,
     setShippingCountry,
     setPostalCode,
+    setCouponCode,
     checkoutCart,
     purchasingId,
     computeShippingPreview: () => {
@@ -205,7 +211,7 @@ type ShippingPayload = {
   label?: string;
 };
 
-async function handleCheckoutRequest(payload: CheckoutPayload[], shipping: ShippingPayload) {
+async function handleCheckoutRequest(payload: CheckoutPayload[], shipping: ShippingPayload, coupon?: string) {
   const response = await fetch('/api/create-checkout-session', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -221,6 +227,7 @@ async function handleCheckoutRequest(payload: CheckoutPayload[], shipping: Shipp
         quantity: item.quantity ?? 1,
       })),
       shipping,
+      coupon,
     }),
   });
 
