@@ -125,24 +125,26 @@ function CheckoutPrefillInner() {
         const variant = t.variantId
           ? variants.find((v) =>
               [v.id, v.variantId, v.productVariantId, v.externalId].filter(Boolean).some((id) => String(id).trim() === t.variantId),
-            ) || variants[0]
-          : variants[0];
+            ) || match.variant || variants[0]
+          : match.variant || variants[0];
 
-        const priceValue = normalizePrice(variant?.price ?? match.price);
-        const currency = normalizeCurrency(variant?.currency ?? (variant?.price as any)?.currency ?? match.price?.currency ?? 'USD');
-          if (!priceValue || !currency) continue;
+        const priceValue = normalizePrice(variant?.price ?? match.product.price);
+        const currency = normalizeCurrency(
+          variant?.currency ?? (variant?.price as any)?.currency ?? (match.product as any)?.price?.currency ?? 'USD',
+        );
+        if (!priceValue || !currency) continue;
 
-        const image = pickImage(variant, match);
+        const image = pickImage(variant, match.product);
 
         itemsToAdd.push({
-          productId: t.productId,
+          productId: String(match.product.id ?? match.product.productId ?? match.product.sku ?? t.productId),
           variantId: variant ? (variant.id ?? variant.variantId ?? variant.productVariantId ?? variant.externalId ?? undefined) : undefined,
-            name: match.name ?? match.title ?? 'Product',
-            variantTitle: variant?.title ?? variant?.name,
-            unitAmount: priceValue,
-            currency,
-            image,
-            quantity: t.quantity,
+          name: match.product.name ?? match.product.title ?? 'Product',
+          variantTitle: variant?.title ?? variant?.name,
+          unitAmount: priceValue,
+          currency,
+          image,
+          quantity: t.quantity,
         });
       }
 
