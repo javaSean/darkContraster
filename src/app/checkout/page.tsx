@@ -3,7 +3,7 @@
 // Ensure this page always renders server-side (avoids static 404 on some hosts)
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 
@@ -41,6 +41,14 @@ interface RawVariant {
 }
 
 export default function CheckoutPrefillPage() {
+  return (
+    <Suspense fallback={<LoadingState message="Preparing your checkout…" />}>
+      <CheckoutPrefillInner />
+    </Suspense>
+  );
+}
+
+function CheckoutPrefillInner() {
   const search = useSearchParams();
   const router = useRouter();
   const { addItem, setCouponCode, toggleCart } = useCart();
@@ -148,15 +156,43 @@ export default function CheckoutPrefillPage() {
     run();
   }, [addItem, couponParam, productId, quantity, router, setCouponCode, toggleCart, variantParam]);
 
+  return <LoadingState message={message} showFailed={status === 'failed'} />;
+}
+
+function LoadingState({ message, showFailed }: { message: string; showFailed?: boolean }) {
   return (
-    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: '2rem', color: '#f7f7f7', background: '#050505' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'grid',
+        placeItems: 'center',
+        padding: '2rem',
+        color: '#f7f7f7',
+        background: '#050505',
+      }}
+    >
       <div style={{ maxWidth: 360, textAlign: 'center', lineHeight: 1.5 }}>
-        <div className="checkout-spinner" style={{ margin: '0 auto 14px', width: 36, height: 36, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.25)', borderTopColor: '#fff', animation: 'checkout-spin 0.9s linear infinite' }} />
+        <div
+          className="checkout-spinner"
+          style={{
+            margin: '0 auto 14px',
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            border: '3px solid rgba(255, 255, 255, 0.25)',
+            borderTopColor: '#fff',
+            animation: 'checkout-spin 0.9s linear infinite',
+          }}
+        />
         <p>{message}</p>
-        {status === 'failed' && <p style={{ fontSize: 14, opacity: 0.8 }}>We&rsquo;re redirecting you to the store.</p>}
+        {showFailed && <p style={{ fontSize: 14, opacity: 0.8 }}>We&rsquo;re redirecting you to the store.</p>}
       </div>
       <style jsx global>{`
-        @keyframes checkout-spin { to { transform: rotate(360deg); } }
+        @keyframes checkout-spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
       `}</style>
     </div>
   );
