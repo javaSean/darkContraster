@@ -66,7 +66,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Auto-recalculate shipping whenever items or country change
   useEffect(() => {
-    if (!items.length || !shippingCountry || !postalCode.trim()) {
+    if (!items.length || !shippingCountry) {
       setShippingAmount(null);
       return;
     }
@@ -80,7 +80,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setCartError(error instanceof Error ? error.message : 'Unable to get quote');
       setShippingAmount(null);
     }
-  }, [items, shippingCountry, postalCode]);
+  }, [items, shippingCountry]);
 
   function addItem(item: CartItem) {
     setItems((prev) => {
@@ -126,7 +126,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setCartError('Add at least one item to checkout.');
       return;
     }
-    if (!shippingAmount || !postalCode || !shippingCountry) {
+    if (!shippingAmount || !shippingCountry) {
       setCartError('Get a shipping quote before checkout.');
       return;
     }
