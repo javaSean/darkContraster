@@ -37,7 +37,6 @@ export async function POST(request: Request) {
     }
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = normalized.map((item) => {
-      const imageUrl = resolveImageUrl(item.image);
       return {
         price_data: {
           currency: item.currency.toLowerCase(),
@@ -45,7 +44,6 @@ export async function POST(request: Request) {
           tax_behavior: 'exclusive',
           product_data: {
             name: item.variantTitle ? `${item.name} — ${item.variantTitle}` : item.name,
-            images: imageUrl ? [imageUrl] : undefined,
             metadata: {
               productId: item.productId ?? '',
               variantId: item.variantId ?? '',
@@ -124,21 +122,7 @@ export async function POST(request: Request) {
   }
 }
 
-function resolveImageUrl(src?: string): string | undefined {
-  if (!src) return undefined;
-  const candidate = src.startsWith('http://') || src.startsWith('https://')
-    ? src
-    : `${siteUrl}${src.startsWith('/') ? src : `/${src}`}`;
-
-  try {
-    const parsed = new URL(candidate);
-    if (!parsed.protocol || !parsed.hostname) return undefined;
-    return parsed.toString();
-  } catch {
-    console.warn('Dropping invalid product image URL', { src, candidate });
-    return undefined;
-  }
-}
+// Note: Stripe session images removed to eliminate URL validation errors during checkout.
 
 function normalizeBaseUrl(value: string): string {
   if (!value) return value;
