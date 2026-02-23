@@ -114,22 +114,22 @@ function CheckoutPrefillInner() {
           const match = resolveProduct(t.productId);
           if (!match) continue;
 
-          const variants: RawVariant[] = Array.isArray(match.variantDetails)
-            ? match.variantDetails
-            : Array.isArray(match.productVariants)
-              ? match.productVariants
-              : Array.isArray(match.variants)
-                ? match.variants
-                : [];
+        const variants: RawVariant[] = Array.isArray(match.variantDetails)
+          ? match.variantDetails
+          : Array.isArray(match.productVariants)
+            ? match.productVariants
+            : Array.isArray(match.variants)
+              ? match.variants
+              : [];
 
-          const variant = t.variantId
-            ? variants.find((v) =>
-                [v.id, v.variantId, v.productVariantId, v.externalId].filter(Boolean).some((id) => String(id).trim() === t.variantId),
-              ) || variants[0]
-            : variants[0];
+        const variant = t.variantId
+          ? variants.find((v) =>
+              [v.id, v.variantId, v.productVariantId, v.externalId].filter(Boolean).some((id) => String(id).trim() === t.variantId),
+            ) || variants[0]
+          : variants[0];
 
-          const priceValue = normalizePrice(variant?.price ?? match.price);
-          const currency = normalizeCurrency(variant?.currency ?? (variant?.price as any)?.currency ?? match.price?.currency ?? 'USD');
+        const priceValue = normalizePrice(variant?.price ?? match.price);
+        const currency = normalizeCurrency(variant?.currency ?? (variant?.price as any)?.currency ?? match.price?.currency ?? 'USD');
           if (!priceValue || !currency) continue;
 
         const image = pickImage(variant, match);
