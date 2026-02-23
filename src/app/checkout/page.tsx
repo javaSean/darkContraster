@@ -149,48 +149,9 @@ function CheckoutPrefillInner() {
       }
 
       if (!itemsToAdd.length) {
-        // Friendly fallback: choose first non-book/print item to avoid wrong defaults
-        const fallback = products.find((p) => {
-          const tags = Array.isArray(p.tags) ? p.tags.map((t: any) => String(t).toLowerCase()) : [];
-          const name = String(p.name ?? p.title ?? '').toLowerCase();
-          const isBook = name.includes('book') || tags.includes('book');
-          return !isBook;
-        }) || products[0];
-
-        if (!fallback) {
-          setMessage('No matching products. Redirecting to store…');
-          router.replace('/#store');
-          return;
-        }
-
-        const variants: RawVariant[] = Array.isArray(fallback.variantDetails)
-          ? fallback.variantDetails
-          : Array.isArray(fallback.productVariants)
-            ? fallback.productVariants
-            : Array.isArray(fallback.variants)
-              ? fallback.variants
-              : [];
-        const variant = variants[0];
-        const priceValue = normalizePrice(variant?.price ?? fallback.price);
-        const currency = normalizeCurrency(
-          variant?.currency ?? (variant as any)?.price?.currency ?? (fallback as any)?.price?.currency ?? 'USD',
-        );
-        if (!priceValue || !currency) {
-          setMessage('No matching products. Redirecting to store…');
-          router.replace('/#store');
-          return;
-        }
-
-        itemsToAdd.push({
-          productId: String(fallback.id ?? fallback.productId ?? fallback.sku ?? 'fallback'),
-          variantId: variant ? (variant.id ?? variant.variantId ?? variant.productVariantId ?? variant.externalId ?? undefined) : undefined,
-          name: fallback.name ?? fallback.title ?? 'Product',
-          variantTitle: variant?.title ?? variant?.name,
-          unitAmount: priceValue,
-          currency,
-          image: pickImage(variant, fallback),
-          quantity: 1,
-        });
+        setMessage('No matching products. Redirecting to store…');
+        router.replace('/#store');
+        return;
       }
 
         // Replace cart with provided items
