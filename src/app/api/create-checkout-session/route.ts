@@ -13,8 +13,9 @@ const siteUrl = normalizeBaseUrl(
 const successUrl = normalizeStripeUrl(
   process.env.STRIPE_SUCCESS_URL ?? `${siteUrl || defaultSiteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
 );
+// Avoid URL fragments; Stripe requires full absolute URLs without hashes
 const cancelUrl = normalizeStripeUrl(
-  process.env.STRIPE_CANCEL_URL ?? `${siteUrl || defaultSiteUrl}/#store`,
+  process.env.STRIPE_CANCEL_URL ?? `${siteUrl || defaultSiteUrl}/?canceled=1&section=store`,
 );
 
 export async function POST(request: Request) {
