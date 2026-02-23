@@ -84,6 +84,14 @@ export function StickyBanner() {
 
   return (
     <>
+      {purchasingId && (
+        <div className="checkout-overlay">
+          <div className="checkout-overlay__content">
+            <div className="checkout-spinner" />
+            <p>Redirecting to secure checkout…</p>
+          </div>
+        </div>
+      )}
       <header className="brand-banner compact">
         <a
           href="#hero"
@@ -307,6 +315,46 @@ const CartDropdown = forwardRef<HTMLDivElement, CartDropdownProps>(function Cart
           </span>
         )}
       </button>
+      <style jsx global>{`
+        .checkout-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(2px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+        }
+        .checkout-overlay__content {
+          color: #f7f7f7;
+          background: #0d0d0f;
+          border: 1px solid #2a2a2f;
+          padding: 18px 22px;
+          border-radius: 10px;
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+          text-align: center;
+          min-width: 240px;
+          display: grid;
+          gap: 10px;
+          font-size: 15px;
+          letter-spacing: 0.01em;
+        }
+        .checkout-spinner {
+          width: 36px;
+          height: 36px;
+          margin: 0 auto;
+          border-radius: 50%;
+          border: 3px solid rgba(255, 255, 255, 0.25);
+          border-top-color: #ffffff;
+          animation: checkout-spin 0.9s linear infinite;
+        }
+        @keyframes checkout-spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
     </div>
   );
 });
