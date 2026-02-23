@@ -18,6 +18,25 @@ const cancelUrl = normalizeStripeUrl(
   process.env.STRIPE_CANCEL_URL ?? `${siteUrl || defaultSiteUrl}/?canceled=1&section=store`,
 );
 
+function ensureValidUrl(value: string, fallback: string): string {
+  try {
+    const parsed = new URL(value);
+    if (!parsed.protocol.startsWith('http')) throw new Error('invalid protocol');
+    return parsed.toString();
+  } catch {
+    return fallback;
+  }
+}
+
+const validatedSuccessUrl = ensureValidUrl(
+  successUrl,
+  `${defaultSiteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+);
+const validatedCancelUrl = ensureValidUrl(
+  cancelUrl,
+  `${defaultSiteUrl}/?canceled=1&section=store`,
+);
+
 export async function POST(request: Request) {
   if (!stripe) {
     return NextResponse.json({ error: 'Stripe secret key missing' }, { status: 500 });
@@ -84,8 +103,8 @@ export async function POST(request: Request) {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      success_url: successUrl,
-      cancel_url: cancelUrl,
+      success_url: validatedSuccessUrl,
+      cancel_url: validatedCancelUrl,
       automatic_tax: { enabled: true },
       shipping_address_collection: {
         allowed_countries: [shippingCountry],
