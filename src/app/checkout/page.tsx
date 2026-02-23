@@ -132,53 +132,25 @@ function CheckoutPrefillInner() {
           const currency = normalizeCurrency(variant?.currency ?? (variant?.price as any)?.currency ?? match.price?.currency ?? 'USD');
           if (!priceValue || !currency) continue;
 
-          const image = pickImage(variant, match);
+        const image = pickImage(variant, match);
 
-          itemsToAdd.push({
-            productId: t.productId,
-            variantId: variant ? (variant.id ?? variant.variantId ?? variant.productVariantId ?? variant.externalId ?? undefined) : undefined,
+        itemsToAdd.push({
+          productId: t.productId,
+          variantId: variant ? (variant.id ?? variant.variantId ?? variant.productVariantId ?? variant.externalId ?? undefined) : undefined,
             name: match.name ?? match.title ?? 'Product',
             variantTitle: variant?.title ?? variant?.name,
             unitAmount: priceValue,
             currency,
             image,
             quantity: t.quantity,
-          });
-        }
+        });
+      }
 
-        if (!itemsToAdd.length) {
-          // Fallback: add the first available product so checkout can proceed even if Meta IDs don't match
-          const fallback = products[0];
-          if (!fallback) {
-            setMessage('No matching products. Redirecting to store…');
-            router.replace('/#store');
-            return;
-          }
-          const variants: RawVariant[] = Array.isArray(fallback.variantDetails)
-            ? fallback.variantDetails
-            : Array.isArray(fallback.productVariants)
-              ? fallback.productVariants
-              : Array.isArray(fallback.variants)
-                ? fallback.variants
-                : [];
-          const variant = variants[0];
-          const priceValue = normalizePrice(variant?.price ?? fallback.price);
-          const currency = normalizeCurrency(
-            variant?.currency ?? (variant as any)?.price?.currency ?? (fallback as any)?.price?.currency ?? 'USD',
-          );
-          if (!priceValue || !currency) throw new Error('No matching products to add');
-          itemsToAdd.push({
-            productId: String(fallback.id ?? fallback.productId ?? fallback.sku ?? 'fallback'),
-            variantId:
-              variant ? (variant.id ?? variant.variantId ?? variant.productVariantId ?? variant.externalId ?? undefined) : undefined,
-            name: fallback.name ?? fallback.title ?? 'Product',
-            variantTitle: variant?.title ?? variant?.name,
-            unitAmount: priceValue,
-            currency,
-            image: pickImage(variant, fallback),
-            quantity: 1,
-          });
-        }
+      if (!itemsToAdd.length) {
+        setMessage('No matching products. Redirecting to store…');
+        router.replace('/#store');
+        return;
+      }
 
         // Replace cart with provided items
         replaceItems(itemsToAdd);
