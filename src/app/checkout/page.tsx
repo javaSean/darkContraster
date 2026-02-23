@@ -49,6 +49,7 @@ export default function CheckoutPrefillPage() {
   const variantParam = search.get('variantId')?.trim() || search.get('vid')?.trim() || '';
   const quantityParam = search.get('quantity') || search.get('qty') || '1';
   const couponParam = search.get('coupon')?.trim() || '';
+  const productsParam = search.get('products')?.trim() || '';
 
   const quantity = useMemo(() => {
     const n = parseInt(quantityParam, 10);
@@ -60,12 +61,6 @@ export default function CheckoutPrefillPage() {
 
   useEffect(() => {
     async function run() {
-      if (!productId) {
-        setMessage('Missing productId. Redirecting to store…');
-        router.replace('/#store');
-        return;
-      }
-
       setStatus('fetching');
       setMessage('Adding your item…');
 
@@ -81,36 +76,60 @@ export default function CheckoutPrefillPage() {
               ? data
               : [];
 
-        const match = products.find((p) => [p.id, p.productId, p.sku].filter(Boolean).some((id) => String(id).trim() === productId));
-        if (!match) throw new Error('Product not found');
+        const parsedList = parseProductsParam(productsParam);
+        const targets = parsedList.length
+          ? parsedList
+          : productId
+            ? [{ productId, quantity, variantId: variantParam || undefined }]
+            : [];
 
-        const variants: RawVariant[] = Array.isArray(match.variantDetails)
-          ? match.variantDetails
-          : Array.isArray(match.productVariants)
-            ? match.productVariants
-            : Array.isArray(match.variants)
-              ? match.variants
-              : [];
+        if (!targets.length) {
+          setMessage('No products specified. Redirecting to store…');
+          router.replace('/#store');
+          return;
+        }
 
-        const variant = variants.find((v) => [v.id, v.variantId, v.productVariantId, v.externalId].filter(Boolean).some((id) => String(id).trim() === variantParam))
-          || variants[0];
+        let added = 0;
+        for (const t of targets.slice(0, 10)) {
+          const match = products.find((p) =>
+            [p.id, p.productId, p.sku].filter(Boolean).some((id) => String(id).trim() === t.productId),
+          );
+          if (!match) continue;
 
-        const priceValue = normalizePrice(variant?.price ?? match.price);
-        const currency = normalizeCurrency(variant?.currency ?? (variant?.price as any)?.currency ?? match.price?.currency ?? 'USD');
-        if (!priceValue || !currency) throw new Error('Price unavailable for this variant');
+          const variants: RawVariant[] = Array.isArray(match.variantDetails)
+            ? match.variantDetails
+            : Array.isArray(match.productVariants)
+              ? match.productVariants
+              : Array.isArray(match.variants)
+                ? match.variants
+                : [];
 
-        const image = pickImage(variant, match);
+          const variant = t.variantId
+            ? variants.find((v) =>
+                [v.id, v.variantId, v.productVariantId, v.externalId].filter(Boolean).some((id) => String(id).trim() === t.variantId),
+              ) || variants[0]
+            : variants[0];
 
-        addItem({
-          productId,
-          variantId: variant ? (variant.id ?? variant.variantId ?? variant.productVariantId ?? variant.externalId ?? undefined) : undefined,
-          name: match.name ?? match.title ?? 'Product',
-          variantTitle: variant?.title ?? variant?.name,
-          unitAmount: priceValue,
-          currency,
-          image,
-          quantity,
-        });
+          const priceValue = normalizePrice(variant?.price ?? match.price);
+          const currency = normalizeCurrency(variant?.currency ?? (variant?.price as any)?.currency ?? match.price?.currency ?? 'USD');
+          if (!priceValue || !currency) continue;
+
+          const image = pickImage(variant, match);
+
+          addItem({
+            productId: t.productId,
+            variantId: variant ? (variant.id ?? variant.variantId ?? variant.productVariantId ?? variant.externalId ?? undefined) : undefined,
+            name: match.name ?? match.title ?? 'Product',
+            variantTitle: variant?.title ?? variant?.name,
+            unitAmount: priceValue,
+            currency,
+            image,
+            quantity: t.quantity,
+          });
+          added += 1;
+        }
+
+        if (!added) throw new Error('No matching products to add');
 
         if (couponParam) setCouponCode(couponParam);
 
@@ -152,6 +171,21 @@ function normalizePrice(price: any): number | null {
 function normalizeCurrency(input: any): string {
   const cur = typeof input === 'string' ? input : '';
   return cur || 'USD';
+}
+
+function parseProductsParam(input: string): { productId: string; quantity: number; variantId?: string }[] {
+  if (!input) return [];
+  return input
+    .split(',')
+    .map((token) => token.trim())
+    .filter(Boolean)
+    .map((token) => {
+      const parts = token.split(':').map((p) => p.trim()).filter(Boolean);
+      const [pid, qtyRaw, vid] = parts;
+      const qty = Math.min(Math.max(parseInt(qtyRaw || '1', 10) || 1, 1), 10);
+      return { productId: pid, quantity: qty, variantId: vid };
+    })
+    .filter((entry) => entry.productId);
 }
 
 function pickImage(variant?: RawVariant, product?: RawProduct): string | undefined {
