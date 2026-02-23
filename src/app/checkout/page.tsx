@@ -156,7 +156,7 @@ function CheckoutPrefillInner() {
     }
 
     run();
-  }, [addItem, couponParam, productId, quantity, router, setCouponCode, toggleCart, variantParam]);
+  }, [couponParam, productId, quantity, router, setCouponCode, toggleCart, variantParam]);
 
   return <LoadingState message={message} showFailed={status === 'failed'} />;
 }
