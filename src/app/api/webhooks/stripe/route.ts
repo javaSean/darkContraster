@@ -2,10 +2,10 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripeSecret = process.env.STRIPE_SECRET_KEY;
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-const gelatoApiKey = process.env.GELATO_API_KEY;
-const gelatoStoreId = process.env.GELATO_STORE_ID;
+const stripeSecret = process.env.STRIPE_SECRET_KEY?.trim();
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+const gelatoApiKey = process.env.GELATO_API_KEY?.trim();
+const gelatoStoreId = process.env.GELATO_STORE_ID?.trim();
 
 const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
 
@@ -56,6 +56,9 @@ export async function POST(request: Request) {
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   if (!gelatoApiKey || !gelatoStoreId) {
     throw new Error('Gelato env vars missing');
+  }
+  if (!isUuid(gelatoStoreId)) {
+    throw new Error(`Gelato store ID is not a valid UUID: "${gelatoStoreId}"`);
   }
 
   const customer = session.customer_details as Stripe.Checkout.Session.CustomerDetails | null;
@@ -112,9 +115,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     throw new Error('Missing product metadata on session');
   }
 
+  const currency = (session.currency || session.metadata?.currency || 'USD').toUpperCase();
+
   const payload = {
     orderReferenceId: session.id,
     storeId: gelatoStoreId,
+    currency,
     customer: {
       email: customer?.email ?? '',
       phone: shippingAddress.phone ?? customer?.phone ?? '',
@@ -134,6 +140,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       storeProductId: item.productId,
       storeProductVariantId: item.variantId ?? '',
       quantity: item.quantity ?? 1,
+      itemReferenceId: item.variantId || item.productId,
     })),
   };
 
@@ -155,4 +162,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const data = await gelatoRes.json();
   console.log('Gelato order created', data?.id ?? data);
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
