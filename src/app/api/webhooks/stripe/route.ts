@@ -121,6 +121,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     orderReferenceId: session.id,
     storeId: gelatoStoreId,
     currency,
+    // Helps Gelato UI show a reference (use email when available)
+    customerReference: customer?.email || session.id,
     customer: {
       email: customer?.email ?? '',
       phone: shippingAddress.phone ?? customer?.phone ?? '',
