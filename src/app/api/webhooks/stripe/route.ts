@@ -144,6 +144,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     })),
   };
 
+  console.log('Submitting Gelato order', {
+    orderReferenceId: payload.orderReferenceId,
+    storeId: payload.storeId,
+    currency: payload.currency,
+    items: payload.items,
+  });
+
   const gelatoRes = await fetch('https://order.gelatoapis.com/v4/orders', {
     method: 'POST',
     headers: {
