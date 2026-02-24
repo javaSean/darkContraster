@@ -39,8 +39,12 @@ export async function POST(request: Request) {
       }
       await handleCheckoutCompleted(session);
     } catch (err) {
-      console.error('Failed to handle checkout.session.completed', err);
-      // Return 200 so Stripe doesn't retry forever, but log the error
+      console.error('Failed to handle checkout.session.completed', {
+        sessionId: session.id,
+        error: err instanceof Error ? err.message : err,
+      });
+      // Signal failure so Stripe will retry delivery; better to risk duplicate than drop fulfillment
+      return NextResponse.json({ error: 'Fulfillment failed' }, { status: 500 });
     }
   }
 
@@ -126,6 +130,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     headers: {
       'Content-Type': 'application/json',
       'X-API-KEY': gelatoApiKey,
+      // Prevent duplicate orders on Stripe retries
+      'Idempotency-Key': session.id,
     },
     body: JSON.stringify(payload),
   });
