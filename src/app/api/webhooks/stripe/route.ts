@@ -42,9 +42,11 @@ export async function POST(request: Request) {
       console.error('Failed to handle checkout.session.completed', {
         sessionId: session.id,
         error: err instanceof Error ? err.message : err,
+        stack: err instanceof Error ? err.stack : undefined,
       });
       // Signal failure so Stripe will retry delivery; better to risk duplicate than drop fulfillment
-      return NextResponse.json({ error: 'Fulfillment failed' }, { status: 500 });
+      const message = err instanceof Error ? err.message : 'Fulfillment failed';
+      return NextResponse.json({ error: `Fulfillment failed: ${message}` }, { status: 500 });
     }
   }
 
