@@ -117,6 +117,60 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const currency = (session.currency || session.metadata?.currency || 'USD').toUpperCase();
 
+  // Attempt to enrich variants with productUid to help Gelato UI connection status
+  const variantUidCache = new Map<string, string>();
+  async function getProductUid(productId: string, variantId?: string) {
+    const key = `${productId}:${variantId ?? ''}`;
+    if (variantUidCache.has(key)) return variantUidCache.get(key);
+    try {
+      const res = await fetch(
+        `https://ecommerce.gelatoapis.com/v1/stores/${gelatoStoreId}/products/${productId}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-KEY': gelatoApiKey,
+          },
+        },
+      );
+      if (!res.ok) {
+        return null;
+      }
+      const data = await res.json();
+      const variants =
+        Array.isArray(data?.variantDetails) && data.variantDetails.length
+          ? data.variantDetails
+          : Array.isArray(data?.productVariants)
+            ? data.productVariants
+            : Array.isArray(data?.variants)
+              ? data.variants
+              : [];
+      const match = variants.find((v: any) => {
+        const id =
+          v?.id ??
+          v?.variantId ??
+          v?.productVariantId ??
+          v?.externalId;
+        return id && variantId && String(id) === String(variantId);
+      });
+      const uid = match?.productUid ?? null;
+      variantUidCache.set(key, uid || null);
+      return uid || null;
+    } catch {
+      return null;
+    }
+  }
+
+  // Enrich items with productUid where available
+  const itemsWithUid = await Promise.all(
+    cartItems.map(async (item) => ({
+      storeProductId: item.productId,
+      storeProductVariantId: item.variantId ?? '',
+      quantity: item.quantity ?? 1,
+      itemReferenceId: item.variantId || item.productId,
+      productUid: await getProductUid(item.productId, item.variantId),
+    })),
+  );
+
   const payload = {
     orderReferenceId: session.id,
     storeId: gelatoStoreId,
@@ -138,12 +192,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       country: shippingAddress.address.country ?? '',
     },
     shippingMethod: 'standard',
-    items: cartItems.map((item) => ({
-      storeProductId: item.productId,
-      storeProductVariantId: item.variantId ?? '',
-      quantity: item.quantity ?? 1,
-      itemReferenceId: item.variantId || item.productId,
-    })),
+    items: itemsWithUid,
   };
 
   console.log('Submitting Gelato order', {
