@@ -128,8 +128,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         {
           headers: {
             'Content-Type': 'application/json',
-            'X-API-KEY': gelatoApiKey,
-          },
+            'X-API-KEY': gelatoApiKey!,
+          } as HeadersInit,
         },
       );
       if (!res.ok) {
@@ -162,13 +162,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Enrich items with productUid where available
   const itemsWithUid = await Promise.all(
-    cartItems.map(async (item) => ({
-      storeProductId: item.productId,
-      storeProductVariantId: item.variantId ?? '',
-      quantity: item.quantity ?? 1,
-      itemReferenceId: item.variantId || item.productId,
-      productUid: await getProductUid(item.productId, item.variantId),
-    })),
+    cartItems.map(async (item) => {
+      const productUid = await getProductUid(item.productId, item.variantId);
+      return {
+        storeProductId: item.productId,
+        storeProductVariantId: item.variantId ?? '',
+        quantity: item.quantity ?? 1,
+        itemReferenceId: item.variantId || item.productId,
+        ...(productUid ? { productUid } : {}),
+      };
+    }),
   );
 
   const payload = {
