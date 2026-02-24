@@ -58,12 +58,22 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     throw new Error('Gelato env vars missing');
   }
 
-  const shipping = (session as any).shipping_details as
+  const customer = session.customer_details as Stripe.Checkout.Session.CustomerDetails | null;
+  // Prefer shipping_details; fall back to customer_details.address if shipping missing
+  const shippingRaw = (session as any).shipping_details as
     | { name?: string | null; phone?: string | null; address?: Stripe.Address | null }
     | null;
-  const customer = session.customer_details as Stripe.Checkout.Session.CustomerDetails | null;
-  if (!shipping?.address || !shipping.name) {
-    throw new Error('Missing shipping details on session');
+  const shippingAddress =
+    shippingRaw?.address || customer?.address
+      ? {
+          address: (shippingRaw?.address || customer?.address) as Stripe.Address,
+          name: shippingRaw?.name || customer?.name || '',
+          phone: shippingRaw?.phone || customer?.phone || '',
+        }
+      : null;
+
+  if (!shippingAddress?.address || !shippingAddress.name) {
+    throw new Error('Missing shipping details on session (shipping_details and customer.address empty)');
   }
 
   // Pull cart metadata (array of items) for multi-item checkouts
@@ -107,17 +117,17 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     storeId: gelatoStoreId,
     customer: {
       email: customer?.email ?? '',
-      phone: shipping.phone ?? customer?.phone ?? '',
-      firstName: shipping.name,
+      phone: shippingAddress.phone ?? customer?.phone ?? '',
+      firstName: shippingAddress.name,
     },
     shippingAddress: {
-      firstName: shipping.name,
-      addressLine1: shipping.address.line1 ?? '',
-      addressLine2: shipping.address.line2 ?? '',
-      city: shipping.address.city ?? '',
-      state: shipping.address.state ?? '',
-      postalCode: shipping.address.postal_code ?? '',
-      country: shipping.address.country ?? '',
+      firstName: shippingAddress.name,
+      addressLine1: shippingAddress.address.line1 ?? '',
+      addressLine2: shippingAddress.address.line2 ?? '',
+      city: shippingAddress.address.city ?? '',
+      state: shippingAddress.address.state ?? '',
+      postalCode: shippingAddress.address.postal_code ?? '',
+      country: shippingAddress.address.country ?? '',
     },
     shippingMethod: 'standard',
     items: cartItems.map((item) => ({
