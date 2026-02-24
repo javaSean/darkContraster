@@ -151,8 +151,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     items: payload.items,
   });
 
-  // Use the store orders endpoint so store product + variant IDs stay connected in Gelato UI
-  const gelatoRes = await fetch('https://order.gelatoapis.com/v4/store/orders', {
+  const gelatoRes = await fetch('https://order.gelatoapis.com/v4/orders', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
