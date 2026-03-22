@@ -11,7 +11,7 @@
   --surface-strong: rgba(255, 255, 255, 0.08);
   --border: rgba(255, 255, 255, 0.1);
   /* Match the visual height of the fixed banner + padding */
-  --banner-base-height: 130px;
+  --banner-base-height: 90px;
   --sub-banner-height: 44px;
   --banner-height: calc(var(--banner-base-height) + var(--sub-banner-height));
   --accent-warm: #eb763a;
