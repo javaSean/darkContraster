@@ -94,8 +94,8 @@ main {
   left: 0;
   width: 100%;
   background: transparent;
-  /* Match scrollbar thumb orange tone for consistency */
-  color: #eb763a;
+  /* Match scrollbar thumb orange tone (with slight transparency) */
+  color: rgba(235, 118, 58, 0.8);
   font-weight: 600;
   text-align: center;
   padding: 0.55rem 1rem;
