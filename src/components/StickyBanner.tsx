@@ -94,10 +94,13 @@ export function StickyBanner() {
       )}
       <header className="brand-banner compact">
         <a
-          href="#hero"
+          href="#store"
           onClick={() => {
-            document.body.classList.remove('site-entered');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.body.classList.add('site-entered');
+            const target = document.getElementById('store');
+            target
+              ? target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              : window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         >
           <Image
@@ -125,6 +128,10 @@ export function StickyBanner() {
           </button>
         </div>
       </header>
+
+      <div className="headline-banner">
+        Surreal collage prints for modern interiors in bold text
+      </div>
 
       <button
         type="button"

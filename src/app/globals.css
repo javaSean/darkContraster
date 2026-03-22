@@ -11,7 +11,9 @@
   --surface-strong: rgba(255, 255, 255, 0.08);
   --border: rgba(255, 255, 255, 0.1);
   /* Match the visual height of the fixed banner + padding */
-  --banner-height: 130px;
+  --banner-base-height: 130px;
+  --sub-banner-height: 44px;
+  --banner-height: calc(var(--banner-base-height) + var(--sub-banner-height));
   --accent-warm: #eb763a;
 }
 
@@ -81,6 +83,22 @@ main {
 .brand-banner.compact img {
   width: min(600px, 90%);
   max-height: 72px;
+}
+
+.headline-banner {
+  position: fixed;
+  top: var(--banner-base-height);
+  left: 0;
+  width: 100%;
+  background: var(--accent-warm);
+  color: #0a0a0a;
+  font-weight: 800;
+  text-align: center;
+  padding: 0.65rem 1rem;
+  letter-spacing: 0.01em;
+  z-index: 29;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
 .header-cart {
