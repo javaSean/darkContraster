@@ -134,9 +134,9 @@ export function StoreSection({ products }: StoreSectionProps) {
     <section className="section" id="store">
       <div className="store-header">
         <div className="store-heading">
-          <h2>Shop</h2>
+          <h2>Available Works</h2>
         </div>
-        <div className="store-filters-wrap" role="group" aria-label="Filter shop products">
+        <div className="store-filters-wrap" role="group" aria-label="Filter available works products">
           <div className="store-filters">
             {FILTERS.map((filter) => (
               <button
