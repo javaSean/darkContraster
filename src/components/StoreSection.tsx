@@ -8,7 +8,7 @@ import { useCart } from '../context/CartContext';
 const FILTERS = [
   { label: 'All', value: 'all' },
   { label: 'Prints', value: 'prints' },
-  { label: 'Accessories', value: 'accessories' },
+  { label: 'Books', value: 'accessories' },
 ] as const;
 
 const PRINT_PRODUCT_IDS = new Set([
