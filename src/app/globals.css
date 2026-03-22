@@ -464,7 +464,7 @@ section h2::after {
   .section#gallery,
   .section.bio {
     margin-top: var(--mobile-section-offset) !important;
-    padding-top: calc(1rem + var(--mobile-section-offset)) !important;
+    padding-top: 0.5rem !important;
     padding-bottom: 0.5rem !important;
     scroll-margin-top: calc(var(--banner-height) + var(--mobile-headline-extra) + var(--mobile-section-offset) + 8px) !important;
   }
