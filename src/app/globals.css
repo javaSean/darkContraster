@@ -11,7 +11,7 @@
   --surface-strong: rgba(255, 255, 255, 0.08);
   --border: rgba(255, 255, 255, 0.1);
   /* Match the visual height of the fixed banner stack + padding */
-  --promo-banner-height: 40px;
+  --promo-banner-height: clamp(28px, 6vw, 36px);
   --banner-base-height: 90px;
   --sub-banner-height: 44px;
   /* Nudge headline upward to sit flush with the header without changing layout spacing */
@@ -113,14 +113,14 @@ main {
   left: 0;
   width: 100%;
   height: var(--promo-banner-height);
-  background: rgba(235, 118, 58, 0.8);
+  background: rgba(169, 78, 36, 0.88); /* #A94E24 with slight transparency */
   color: #0a0a0a;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   letter-spacing: 0.04em;
-  font-size: 0.95rem;
+  font-size: clamp(0.9rem, 2.7vw, 1rem);
   z-index: 32;
   padding: 0 1rem;
   box-sizing: border-box;
