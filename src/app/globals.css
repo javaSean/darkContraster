@@ -762,14 +762,14 @@ margin-left:0;
 
 .store-heading h2 {
   margin: 0;
-  font-size: clamp(2rem, 5vw, 2.75rem);
-  letter-spacing: 0.04em;
+  font-size: inherit;
+  letter-spacing: inherit;
 }
 
 .store-subtitle {
   margin: 0.25rem 0 0;
   color: var(--muted);
-  font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
   letter-spacing: 0.03em;
   font-weight: 500;
 }
