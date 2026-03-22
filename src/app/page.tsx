@@ -22,7 +22,7 @@ const socialLinks = [
 ];
 
 const navigationItems = [
-  { label: 'Store', href: '#store' },
+  { label: 'Shop', href: '#store' },
   { label: 'Gallery', href: '#gallery' },
   { label: 'Bio', href: '#bio' },
 ];
