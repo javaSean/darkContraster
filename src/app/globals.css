@@ -760,6 +760,20 @@ margin-left:0;
   padding-bottom:.5rem;
 }
 
+.store-heading h2 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  letter-spacing: 0.04em;
+}
+
+.store-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+  letter-spacing: 0.03em;
+  font-weight: 500;
+}
+
 .store-cart-toggle {
   display: none;
   
