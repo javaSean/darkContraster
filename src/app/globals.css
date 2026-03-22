@@ -13,7 +13,9 @@
   /* Match the visual height of the fixed banner + padding */
   --banner-base-height: 90px;
   --sub-banner-height: 44px;
-  --banner-height: calc(var(--banner-base-height) + var(--sub-banner-height));
+  /* Nudge headline upward to sit flush with the header */
+  --sub-banner-overlap: 6px;
+  --banner-height: calc(var(--banner-base-height) + var(--sub-banner-height) - var(--sub-banner-overlap));
   --accent-warm: #eb763a;
 }
 
@@ -87,7 +89,7 @@ main {
 
 .headline-banner {
   position: fixed;
-  top: var(--banner-base-height);
+  top: calc(var(--banner-base-height) - var(--sub-banner-overlap));
   left: 0;
   width: 100%;
   background: var(--accent-warm);
