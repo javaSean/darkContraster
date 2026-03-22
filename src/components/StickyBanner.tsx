@@ -92,6 +92,9 @@ export function StickyBanner() {
           </div>
         </div>
       )}
+      <div className="promo-banner">
+        <span>20% off this week – applied automatically</span>
+      </div>
       <header className="brand-banner compact">
         <a
           href="#store"

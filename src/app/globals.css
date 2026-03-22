@@ -10,12 +10,13 @@
   --surface: rgba(255, 255, 255, 0.04);
   --surface-strong: rgba(255, 255, 255, 0.08);
   --border: rgba(255, 255, 255, 0.1);
-  /* Match the visual height of the fixed banner + padding */
+  /* Match the visual height of the fixed banner stack + padding */
+  --promo-banner-height: 40px;
   --banner-base-height: 90px;
   --sub-banner-height: 44px;
   /* Nudge headline upward to sit flush with the header without changing layout spacing */
   --sub-banner-overlap: 2px;
-  --banner-height: calc(var(--banner-base-height) + var(--sub-banner-height));
+  --banner-height: calc(var(--promo-banner-height) + var(--banner-base-height) + var(--sub-banner-height));
   /* Burnt orange tone to match existing palette but less neon */
   --accent-warm: #d85a1a;
 }
@@ -49,7 +50,7 @@ main {
 
 .brand-banner {
   position: fixed;
-  top: 0;
+  top: var(--promo-banner-height);
   left: 0;
   width: 100%;
   z-index: 30;
@@ -90,7 +91,7 @@ main {
 
 .headline-banner {
   position: fixed;
-  top: calc(var(--banner-base-height) - var(--sub-banner-overlap));
+  top: calc(var(--promo-banner-height) + var(--banner-base-height) - var(--sub-banner-overlap));
   left: 0;
   width: 100%;
   background: transparent;
@@ -104,6 +105,25 @@ main {
   z-index: 29;
   border-bottom: none;
   box-shadow: none;
+}
+
+.promo-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--promo-banner-height);
+  background: rgba(235, 118, 58, 0.8);
+  color: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-size: 0.95rem;
+  z-index: 32;
+  padding: 0 1rem;
+  box-sizing: border-box;
 }
 
 .header-cart {
