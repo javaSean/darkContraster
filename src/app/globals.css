@@ -449,7 +449,7 @@ section h2::after {
 @media (max-width: 600px) {
   :root {
     --mobile-headline-extra: 12px;
-    --mobile-section-offset: 28px;
+    --mobile-section-offset: 36px;
   }
 
   .section#store {
@@ -458,18 +458,18 @@ section h2::after {
   }
 
   .store-scroll {
-    padding-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
   }
 
   .headline-banner {
-    top: calc(var(--promo-banner-height) + var(--promo-banner-gap) + var(--banner-base-height) - var(--sub-banner-overlap) - 6px);
+    top: calc(var(--promo-banner-height) + var(--promo-banner-gap) + var(--banner-base-height) - var(--sub-banner-overlap) - 14px);
     font-size: clamp(0.85rem, 3vw, 0.95rem);
     letter-spacing: 0.045em;
   }
 
   .section#gallery {
     margin-top: var(--mobile-section-offset);
-    height: calc(100vh - var(--banner-height) - var(--mobile-section-offset) - 40px);
+    height: calc(100vh - var(--banner-height) - var(--mobile-section-offset) - 70px);
   }
 
   .bio {
