@@ -449,16 +449,16 @@ section h2::after {
 @media (max-width: 600px) {
   :root {
     --mobile-headline-extra: 12px;
-    --mobile-section-offset: 20px;
+    --mobile-section-offset: 28px;
   }
 
   .section#store {
     padding-top: calc(1.25rem + var(--mobile-section-offset));
-    scroll-margin-top: calc(var(--banner-height) + var(--mobile-headline-extra) + var(--mobile-section-offset));
+    scroll-margin-top: calc(var(--banner-height) + var(--mobile-headline-extra) + var(--mobile-section-offset) + 8px);
   }
 
   .store-scroll {
-    padding-bottom: calc(1.25rem - var(--mobile-section-offset) * 0.3);
+    padding-bottom: 0.75rem;
   }
 
   .headline-banner {
@@ -469,12 +469,13 @@ section h2::after {
 
   .section#gallery {
     margin-top: var(--mobile-section-offset);
-    height: calc(100vh - var(--banner-height) - var(--mobile-section-offset));
+    height: calc(100vh - var(--banner-height) - var(--mobile-section-offset) - 40px);
   }
 
   .bio {
     margin-top: var(--mobile-section-offset);
-    padding-top: 0.5rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
   }
 
   .header-cart {
