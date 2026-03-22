@@ -103,8 +103,17 @@ export function StoreSection({ products }: StoreSectionProps) {
   }, [lightbox]);
 
   const filteredProducts = useMemo(() => {
-    if (activeFilter === 'all') return products;
-    return products.filter((product) => product.category === activeFilter);
+    const priority = (category: StoreCategory | undefined) => {
+      if (category === 'prints') return 0;
+      if (category === 'accessories') return 1;
+      return 2; // everything else after
+    };
+
+    const pool = activeFilter === 'all'
+      ? products
+      : products.filter((product) => product.category === activeFilter);
+
+    return [...pool].sort((a, b) => priority(a.category) - priority(b.category));
   }, [activeFilter, products]);
 
   function addToCart(product: StoreProduct, variant?: StoreVariant) {
