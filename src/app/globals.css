@@ -94,13 +94,13 @@ main {
   left: 0;
   width: 100%;
   background: transparent;
-  /* Match scrollbar thumb orange tone (with slight transparency) */
-  color: rgba(235, 118, 58, 0.8);
-  font-weight: 600;
+  /* Match primary accent (button) color for consistency */
+  color: var(--accent-warm);
+  font-weight: 720;
   text-align: center;
   padding: 0.55rem 1rem;
-  letter-spacing: 0.04em;
-  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  font-size: 1.02rem;
   z-index: 29;
   border-bottom: none;
   box-shadow: none;
