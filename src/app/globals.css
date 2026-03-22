@@ -18,6 +18,7 @@
   /* Nudge headline upward to sit flush with the header without changing layout spacing */
   --sub-banner-overlap: 2px;
   --banner-height: calc(var(--promo-banner-height) + var(--promo-banner-gap) + var(--banner-base-height) + var(--sub-banner-height));
+  --mobile-headline-extra: 0px;
   /* Burnt orange tone to match existing palette but less neon */
   --accent-warm: #d85a1a;
 }
@@ -46,7 +47,7 @@ body.site-entered {
 main {
   width: 100%;
   margin: 0 auto;
-  padding: var(--banner-height) 0 2rem;
+  padding: calc(var(--banner-height) + var(--mobile-headline-extra)) 0 2rem;
 }
 
 .brand-banner {
@@ -445,6 +446,16 @@ section h2::after {
 }
 
 @media (max-width: 600px) {
+  :root {
+    --mobile-headline-extra: 12px;
+  }
+
+  .headline-banner {
+    top: calc(var(--promo-banner-height) + var(--promo-banner-gap) + var(--banner-base-height) - var(--sub-banner-overlap) - 6px);
+    font-size: clamp(0.85rem, 3vw, 0.95rem);
+    letter-spacing: 0.045em;
+  }
+
   .header-cart {
     pointer-events: none;
     opacity: 0;
