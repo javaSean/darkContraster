@@ -144,7 +144,7 @@ export function StoreSection({ products }: StoreSectionProps) {
       <div className="store-header">
         <div className="store-heading">
           <h2>Shop</h2>
-          <p className="store-subtitle">Prints, books, and curated pieces available now.</p>
+          <p className="store-subtitle">Prints and books available now.</p>
         </div>
         <div className="store-filters-wrap" role="group" aria-label="Filter shop products">
           <div className="store-filters">
