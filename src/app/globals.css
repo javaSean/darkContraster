@@ -465,7 +465,7 @@ section h2::after {
   .section.bio {
     margin-top: var(--mobile-section-offset) !important;
     padding-top: calc(1rem + var(--mobile-section-offset)) !important;
-    padding-bottom: 1rem !important;
+    padding-bottom: 0.5rem !important;
     scroll-margin-top: calc(var(--banner-height) + var(--mobile-headline-extra) + var(--mobile-section-offset) + 8px) !important;
   }
 
@@ -474,12 +474,12 @@ section h2::after {
   }
 
   .section#gallery {
-    height: calc(100vh - var(--banner-height) - var(--mobile-section-offset) - 120px) !important;
+    height: calc(100vh - var(--banner-height) - (var(--mobile-section-offset) * 2) - 120px) !important;
   }
 
   .bio {
-    padding-top: 0.35rem !important;
-    padding-bottom: 0.35rem !important;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
   }
 
   .header-cart {
