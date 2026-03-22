@@ -135,7 +135,7 @@ export function StoreSection({ products }: StoreSectionProps) {
       <div className="store-header">
         <div className="store-heading">
           <h2>Available Works</h2>
-          <p className="store-subtitle">Surreal collage prints for modern interiors</p>
+          <p className="store-subtitle">Prints, books, and curated pieces available now.</p>
         </div>
         <div className="store-filters-wrap" role="group" aria-label="Filter available works products">
           <div className="store-filters">
