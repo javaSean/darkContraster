@@ -1,8 +1,6 @@
-import Image from 'next/image';
 import fs from 'node:fs';
 import path from 'node:path';
 import { headers } from 'next/headers';
-import { EnterButton } from '../components/EnterButton';
 import { GallerySearch } from '../components/GallerySearch';
 import { MobileTabs } from '../components/MobileTabs';
 import { MobileSnapManager } from '../components/MobileSnapManager';
@@ -24,9 +22,8 @@ const socialLinks = [
 ];
 
 const navigationItems = [
-  { label: 'Home', href: '#hero' },
-  { label: 'Gallery', href: '#gallery' },
   { label: 'Store', href: '#store' },
+  { label: 'Gallery', href: '#gallery' },
   { label: 'Bio', href: '#bio' },
 ];
 
@@ -52,32 +49,13 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="hero" id="hero">
-        <div className="hero-dog">
-          <Image
-            src="/images/darkContrasterDogAnimation.gif"
-            alt="Dark Contraster dog animation"
-            fill
-            priority
-            sizes="100vw"
-            style={{ objectFit: 'contain' }}
-            unoptimized
-          />
-        </div>
-        <div className="hero-content">
-          <div className="hero-actions start">
-            <EnterButton />
-          </div>
-        </div>
-      </section>
-
       <main id="site-root">
         <MobileSnapManager/>
+        <StoreSection products={storeProducts} />
+
         <section className="section" id="gallery">
           <GallerySearch images={galleryImages} />
         </section>
-
-        <StoreSection products={storeProducts} />
 
         <section className="section bio" id="bio">
           <div className="bio-columns">
