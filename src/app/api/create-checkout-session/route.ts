@@ -10,6 +10,8 @@ const siteUrl = normalizeBaseUrl(
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : defaultSiteUrl),
 );
 
+const DEFAULT_COUPON = 'VREHRfuX';
+
 const successUrl = normalizeStripeUrl(
   process.env.STRIPE_SUCCESS_URL ?? `${siteUrl || defaultSiteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
 );
@@ -97,11 +99,15 @@ export async function POST(request: Request) {
     const shippingAmount = Math.round(shipping.amount);
     const shippingCountry = String(shipping.country).toUpperCase() as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry;
 
+    const discounts: Stripe.Checkout.SessionCreateParams.Discount[] = coupon
+      ? [{ promotion_code: coupon }]
+      : [{ coupon: DEFAULT_COUPON }];
+
     console.log('Creating Stripe session', {
       lineItems: lineItems.length,
       shippingAmount,
       shippingCountry,
-      coupon: coupon || 'none',
+      coupon: coupon || DEFAULT_COUPON,
     });
 
     const session = await stripe.checkout.sessions.create({
@@ -125,7 +131,7 @@ export async function POST(request: Request) {
           },
         },
       ],
-      discounts: coupon ? [{ promotion_code: coupon }] : undefined,
+      discounts,
       line_items: lineItems,
       metadata: {
         cart: cartMetadata,
