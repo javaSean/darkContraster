@@ -450,7 +450,7 @@ section h2::after {
   :root {
     --mobile-headline-extra: 12px;
     /* Include approximate height of the tagline text so sections start below it */
-    --mobile-section-offset: 64px;
+    --mobile-section-offset: 58px;
   }
 
   .headline-banner {
