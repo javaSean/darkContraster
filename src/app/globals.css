@@ -14,7 +14,7 @@
   --banner-base-height: 90px;
   --sub-banner-height: 44px;
   /* Nudge headline upward to sit flush with the header without changing layout spacing */
-  --sub-banner-overlap: 6px;
+  --sub-banner-overlap: 2px;
   --banner-height: calc(var(--banner-base-height) + var(--sub-banner-height));
   /* Burnt orange tone to match existing palette but less neon */
   --accent-warm: #d85a1a;
@@ -94,7 +94,8 @@ main {
   left: 0;
   width: 100%;
   background: transparent;
-  color: #eaeaea;
+  /* Match scrollbar thumb orange tone for consistency */
+  color: #eb763a;
   font-weight: 600;
   text-align: center;
   padding: 0.55rem 1rem;
