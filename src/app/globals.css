@@ -13,9 +13,9 @@
   /* Match the visual height of the fixed banner + padding */
   --banner-base-height: 90px;
   --sub-banner-height: 44px;
-  /* Nudge headline upward to sit flush with the header */
+  /* Nudge headline upward to sit flush with the header without changing layout spacing */
   --sub-banner-overlap: 6px;
-  --banner-height: calc(var(--banner-base-height) + var(--sub-banner-height) - var(--sub-banner-overlap));
+  --banner-height: calc(var(--banner-base-height) + var(--sub-banner-height));
   --accent-warm: #eb763a;
 }
 
