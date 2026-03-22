@@ -449,7 +449,8 @@ section h2::after {
 @media (max-width: 600px) {
   :root {
     --mobile-headline-extra: 12px;
-    --mobile-section-offset: 44px;
+    /* Include approximate height of the tagline text so sections start below it */
+    --mobile-section-offset: 64px;
   }
 
   .headline-banner {
@@ -462,10 +463,10 @@ section h2::after {
   .section#store,
   .section#gallery,
   .section.bio {
-    margin-top: var(--mobile-section-offset);
-    padding-top: calc(1rem + var(--mobile-section-offset));
-    padding-bottom: 1rem;
-    scroll-margin-top: calc(var(--banner-height) + var(--mobile-headline-extra) + var(--mobile-section-offset) + 8px);
+    margin-top: var(--mobile-section-offset) !important;
+    padding-top: calc(1rem + var(--mobile-section-offset)) !important;
+    padding-bottom: 1rem !important;
+    scroll-margin-top: calc(var(--banner-height) + var(--mobile-headline-extra) + var(--mobile-section-offset) + 8px) !important;
   }
 
   .store-scroll {
@@ -473,12 +474,12 @@ section h2::after {
   }
 
   .section#gallery {
-    height: calc(100vh - var(--banner-height) - var(--mobile-section-offset) - 120px);
+    height: calc(100vh - var(--banner-height) - var(--mobile-section-offset) - 120px) !important;
   }
 
   .bio {
-    padding-top: 0.35rem;
-    padding-bottom: 0.35rem;
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
   }
 
   .header-cart {
