@@ -450,6 +450,15 @@ section h2::after {
     --mobile-headline-extra: 12px;
   }
 
+  .section#store {
+    padding-top: 1.25rem;
+    scroll-margin-top: calc(var(--banner-height) + var(--mobile-headline-extra) + 12px);
+  }
+
+  .store-scroll {
+    padding-bottom: 1.25rem;
+  }
+
   .headline-banner {
     top: calc(var(--promo-banner-height) + var(--promo-banner-gap) + var(--banner-base-height) - var(--sub-banner-overlap) - 6px);
     font-size: clamp(0.85rem, 3vw, 0.95rem);
@@ -565,10 +574,10 @@ margin-left:0;
 
   .section#store {
     position: relative;
-    margin-top:0;
+    margin-top: 0;
     align-items:space-between;
     overflow-x:visible;
-    padding-top:0;
+    padding-top: 0;
   }
 
   .section#gallery {
