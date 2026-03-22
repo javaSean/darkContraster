@@ -16,7 +16,8 @@
   /* Nudge headline upward to sit flush with the header without changing layout spacing */
   --sub-banner-overlap: 6px;
   --banner-height: calc(var(--banner-base-height) + var(--sub-banner-height));
-  --accent-warm: #eb763a;
+  /* Burnt orange tone to match existing palette but less neon */
+  --accent-warm: #d85a1a;
 }
 
 * {
@@ -92,15 +93,16 @@ main {
   top: calc(var(--banner-base-height) - var(--sub-banner-overlap));
   left: 0;
   width: 100%;
-  background: var(--accent-warm);
-  color: #0a0a0a;
-  font-weight: 800;
+  background: transparent;
+  color: #eaeaea;
+  font-weight: 600;
   text-align: center;
-  padding: 0.65rem 1rem;
-  letter-spacing: 0.01em;
+  padding: 0.55rem 1rem;
+  letter-spacing: 0.04em;
+  font-size: 0.95rem;
   z-index: 29;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  border-bottom: none;
+  box-shadow: none;
 }
 
 .header-cart {
