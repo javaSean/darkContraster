@@ -452,9 +452,19 @@ section h2::after {
     --mobile-section-offset: 44px;
   }
 
-  .section#store {
+  .headline-banner {
+    top: calc(var(--promo-banner-height) + var(--promo-banner-gap) + var(--banner-base-height) - var(--sub-banner-overlap) - 14px);
+    font-size: clamp(0.85rem, 3vw, 0.95rem);
+    letter-spacing: 0.045em;
+  }
+
+  /* Move full sections down and shrink their vertical footprint */
+  .section#store,
+  .section#gallery,
+  .section.bio {
+    margin-top: var(--mobile-section-offset);
     padding-top: calc(1rem + var(--mobile-section-offset));
-    padding-bottom: 1.25rem;
+    padding-bottom: 1rem;
     scroll-margin-top: calc(var(--banner-height) + var(--mobile-headline-extra) + var(--mobile-section-offset) + 8px);
   }
 
@@ -462,21 +472,13 @@ section h2::after {
     padding-bottom: 0.25rem;
   }
 
-  .headline-banner {
-    top: calc(var(--promo-banner-height) + var(--promo-banner-gap) + var(--banner-base-height) - var(--sub-banner-overlap) - 14px);
-    font-size: clamp(0.85rem, 3vw, 0.95rem);
-    letter-spacing: 0.045em;
-  }
-
   .section#gallery {
-    margin-top: var(--mobile-section-offset);
-    height: calc(100vh - var(--banner-height) - var(--mobile-section-offset) - 100px);
+    height: calc(100vh - var(--banner-height) - var(--mobile-section-offset) - 120px);
   }
 
   .bio {
-    margin-top: var(--mobile-section-offset);
-    padding-top: 0.2rem;
-    padding-bottom: 0.2rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
   }
 
   .header-cart {
