@@ -130,7 +130,7 @@ export function StickyBanner() {
       </header>
 
       <div className="headline-banner">
-        Surreal collage prints for modern interiors in bold text
+        Surreal collage prints for modern interiors
       </div>
 
       <button
